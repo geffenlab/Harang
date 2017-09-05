@@ -13,13 +13,16 @@ addpath(directory);
 vidReader = VideoReader(filepath);
 
 %% Optical Flow
-optFlow = opticalFlowFarneback;
+% optFlow = opticalFlowFarneback;
+% scale = 2;
+optFlow = opticalFlowLKDoG('NumFrames',3);
+scale = 25;
 
 while hasFrame(vidReader)
     frame = readFrame(vidReader);
     flow = estimateFlow(optFlow, frame);
     imshow(frame);
     hold on
-    plot(flow,'DecimationFactor',[5 5],'ScaleFactor',2)
+    plot(flow,'DecimationFactor',[5 5],'ScaleFactor',scale)
     hold off
 end
