@@ -17,6 +17,7 @@ vidReader = VideoReader(filepath);
 % scale = 2;
 optFlow = opticalFlowLKDoG('NumFrames',3);
 scale = 25;
+% optFlow = opticalFlowHS;
 
 while hasFrame(vidReader)
     frame = readFrame(vidReader);
