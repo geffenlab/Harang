@@ -127,19 +127,118 @@ end
 %% plot neuron response to A by prior
 for w = 1 : 3
     subplot(3,3,3*(w-1)+1)
-    title(['P(word ' w ' to 1) = ' num2str()])
     ca_word_A_giv_A = squeeze(ca_word_stim_prev_mean(:, w, 1, :));
     max_resps_A_giv_A = max(ca_word_A_giv_A,[],2);
-    [~, max_resps_A_giv_A_index] = sort(max_resps_A, 'descend');
-    imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index(1:50), :));
-    caxis([0 .2]); colorbar
+    [~, max_resps_A_giv_A_index] = sort(max_resps_A_giv_A, 'descend');
+%     imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index(1:50), :));
+    imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index, :));
+%     imagesc(ca_word_A_giv_A);
+    caxis([0 .2]); colorbar;
+    title(['P(word 1 to ' num2str(w) ') = ' num2str(stimInfo.grammar(w, 1))])
+    ylabel('same neurons across rows')
+    
     subplot(3,3,3*(w-1)+2)
     ca_word_A_giv_B = squeeze(ca_word_stim_prev_mean(:, w, 2, :));
-    imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index(1:50), :));
+%     imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index(1:50), :));
+    imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index, :));
+%     imagesc(ca_word_A_giv_B);
     caxis([0 .2]); colorbar
+    title(['P(word 2 to ' num2str(w) ') = ' num2str(stimInfo.grammar(w, 2))])
+    
     subplot(3,3,3*(w-1)+3)
     ca_word_A_giv_C = squeeze(ca_word_stim_prev_mean(:, w, 3, :));
-    imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index(1:50), :));
+%     imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index(1:50), :));
+    imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index, :));
+%     imagesc(ca_word_A_giv_C);
     caxis([0 .2]); colorbar
+    title(['P(word 3 to ' num2str(w) ') = ' num2str(stimInfo.grammar(w, 3))])
 end
 
+%% separate neuron response by prior word 
+% AND separated by FIRST HALF and SECOND HALF of the session
+% A -> A, B -> A, C -> A
+% A -> B, B -> B, C -> B
+% A -> C, B -> C, C -> C
+wordA_stim = find(stimInfo.order == 1);
+wordB_stim = find(stimInfo.order == 2);
+wordC_stim = find(stimInfo.order == 3);
+ca_word_stim_prev_halves = {...
+    zeros(316, 3, sum(wordA_stim<1000), 14),...
+    zeros(316, 3, sum(wordB_stim<1000), 14),...
+    zeros(316, 3, sum(wordC_stim<1000), 14);...
+    zeros(316, 3, sum(wordA_stim>=1000), 14),...
+    zeros(316, 3, sum(wordB_stim>=1000), 14),...
+    zeros(316, 3, sum(wordC_stim>=1000), 14)};
+for w = 1 : 3
+    for n = 1 : 316
+        stim_order = find(stimInfo.order == w);
+        for s = stim_order
+            if s < 2
+                continue
+            end
+            word_prev = stimInfo.order(s-1);
+            which_half = 1;
+            if s >= 1000
+                which_half = 2;
+            end
+            ca_word_stim_prev_halves{w, which_half}...
+                (n, word_prev, find(stim_order==s), :) = ...
+                ca_word_stim(n, s, :);
+        end
+    end
+end
+
+%% get averages
+ca_word_stim_prev_halves_mean = zeros(316, 2, 3, 3, 14);
+for n = 1 : 316
+    for which_half = 1 : 2
+        for w = 1 : 3
+            for w_prev = 1 : 3
+                ca_word_stim_prev_halves_mean...
+                    (n, which_half, w, w_prev, :) = ...
+                    mean(ca_word_stim_prev_halves...
+                    {w, which_half}(n, w_prev, :, :), 3);
+            end
+        end
+    end
+end
+
+%% plot neuron response to A by prior
+% AND separated by FIRST HALF and SECOND HALF of the session
+for half = 1 : 2
+    figure(half)
+    for w = 1 : 3
+        subplot(3,3,3*(w-1)+1)
+        ca_word_A_giv_A = squeeze(...
+            ca_word_stim_prev_halves_mean(:, half, w, 1, :));
+        max_resps_A_giv_A = max(ca_word_A_giv_A,[],2);
+        [~, max_resps_A_giv_A_index] = sort(max_resps_A_giv_A, 'descend');
+%         imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index(1:50), :));
+        imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index, :));
+%         imagesc(ca_word_A_giv_A);
+        caxis([0 .2]); colorbar;
+        title(['P(word 1 to ' num2str(w) ') = ' ...
+            num2str(stimInfo.grammar(w, 1)) ' (' num2str(half) ' half)'])
+        ylabel('same neurons across rows')
+
+        subplot(3,3,3*(w-1)+2)
+        ca_word_A_giv_B = squeeze(...
+            ca_word_stim_prev_halves_mean(:, half, w, 2, :));
+%         imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index(1:50), :));
+        imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index, :));
+%         imagesc(ca_word_A_giv_B);
+        caxis([0 .2]); colorbar
+        title(['P(word 2 to ' num2str(w) ') = ' ...
+            num2str(stimInfo.grammar(w, 1)) ' (' num2str(half) ' half)'])
+
+        subplot(3,3,3*(w-1)+3)
+        ca_word_A_giv_C = squeeze(...
+            ca_word_stim_prev_halves_mean(:, half, w, 3, :));
+%         imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index(1:50), :));
+        imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index, :));
+%         imagesc(ca_word_A_giv_C);
+        caxis([0 .2]); colorbar
+        title(['P(word 3 to ' num2str(w) ') = ' ...
+            num2str(stimInfo.grammar(w, 1)) ' (' num2str(half) ' half)'])
+    end
+end
