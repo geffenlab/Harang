@@ -130,8 +130,8 @@ for w = 1 : 3
     ca_word_A_giv_A = squeeze(ca_word_stim_prev_mean(:, w, 1, :));
     max_resps_A_giv_A = max(ca_word_A_giv_A,[],2);
     [~, max_resps_A_giv_A_index] = sort(max_resps_A_giv_A, 'descend');
-%     imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index(1:50), :));
-    imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index, :));
+    imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index(1:50), :));
+%     imagesc(ca_word_A_giv_A(max_resps_A_giv_A_index, :));
 %     imagesc(ca_word_A_giv_A);
     caxis([0 .2]); colorbar;
     title(['P(word 1 to ' num2str(w) ') = ' num2str(stimInfo.grammar(w, 1))])
@@ -139,16 +139,16 @@ for w = 1 : 3
     
     subplot(3,3,3*(w-1)+2)
     ca_word_A_giv_B = squeeze(ca_word_stim_prev_mean(:, w, 2, :));
-%     imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index(1:50), :));
-    imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index, :));
+    imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index(1:50), :));
+%     imagesc(ca_word_A_giv_B(max_resps_A_giv_A_index, :));
 %     imagesc(ca_word_A_giv_B);
     caxis([0 .2]); colorbar
     title(['P(word 2 to ' num2str(w) ') = ' num2str(stimInfo.grammar(w, 2))])
     
     subplot(3,3,3*(w-1)+3)
     ca_word_A_giv_C = squeeze(ca_word_stim_prev_mean(:, w, 3, :));
-%     imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index(1:50), :));
-    imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index, :));
+    imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index(1:50), :));
+%     imagesc(ca_word_A_giv_C(max_resps_A_giv_A_index, :));
 %     imagesc(ca_word_A_giv_C);
     caxis([0 .2]); colorbar
     title(['P(word 3 to ' num2str(w) ') = ' num2str(stimInfo.grammar(w, 3))])
@@ -229,7 +229,7 @@ for half = 1 : 2
 %         imagesc(ca_word_A_giv_B);
         caxis([0 .2]); colorbar
         title(['P(word 2 to ' num2str(w) ') = ' ...
-            num2str(stimInfo.grammar(w, 1)) ' (' num2str(half) ' half)'])
+            num2str(stimInfo.grammar(w, 2)) ' (' num2str(half) ' half)'])
 
         subplot(3,3,3*(w-1)+3)
         ca_word_A_giv_C = squeeze(...
@@ -239,6 +239,6 @@ for half = 1 : 2
 %         imagesc(ca_word_A_giv_C);
         caxis([0 .2]); colorbar
         title(['P(word 3 to ' num2str(w) ') = ' ...
-            num2str(stimInfo.grammar(w, 1)) ' (' num2str(half) ' half)'])
+            num2str(stimInfo.grammar(w, 3)) ' (' num2str(half) ' half)'])
     end
 end
