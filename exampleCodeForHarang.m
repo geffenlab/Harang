@@ -13,6 +13,7 @@ for ii = 1:length(e)
     raster(:,:,ii) = spikes(:,e(ii):e(ii)+stimDur);
 end
 
+%%
 newOrder = [stim(1:end-1)' stim(2:end)']; % order of transitions
 raster = raster(:,:,2:end); % remove fisrt trial as nothng preceded it
 uT = unique(newOrder,'rows'); % unique transitions
@@ -26,26 +27,31 @@ for ii = 1:length(uT)
     trast(:,:,ii) = mean(raster(:,:,rows),3);
 end
 
-% Plot each transition raster order by most responsive neurons
+%% Plot each transition raster order by most responsive neurons
 figure
 for ii = 1:size(trast,3)
     subplot(3,3,ii)
     [~,index] = sort(max(trast(:,:,ii),[],2),'descend');
     a = trast(index,:,ii);
-    imagesc(a(1:50,:), [0 0.5])
-    colormap gray
+    imagesc(a, [0 0.5])
+    title([ num2str(uT(ii, 1)) '->' num2str(uT(ii,2))])
+    xlabel('frames'); ylabel('neurons')
     colorbar
 end
 
-% Work out mean response to each transition across neurons
+%% Work out mean response to each transition across neurons
 mtr = squeeze(mean(mean(trast,1),2));
 mtr = reshape(mtr,[3,3])';
+figure
 % mtr = mtr-min(mtr(:));
 % mtr = reshape(mtr/max(mtr),[3,3])';
 g = stimInfo.grammar;
 % g = g-min(g(:));
 % g = g/max(g(:));
-c = corr(g(:),mtr(:))
-imagesc(c)
+c = corr(g(:),mtr(:));
+disp(['corr b/t grammar & mean response = ' num2str(c)])
+% imagesc(c)
+imagesc(mtr)
 colorbar
 colormap gray
+
