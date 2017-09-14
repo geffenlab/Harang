@@ -41,35 +41,26 @@ end
 spikes_stim = spikes_stim(:,2:end,:);
 spikes_trans = zeros(num_neur, num_words * num_words, frames);
 trans_all = [stimInfo.order(1:end-1)' stimInfo.order(2:end)'];
-uT = unique(trans_all, 'rows');
-uT = sortrows(uT,[2,1]);
-num_trans = zeros(1, length(uT));
-
-for ii = 1:length(uT)
-    rows = find(trans_all(:,1)==uT(ii,1) & trans_all(:,2)==uT(ii,2));
+trans_uniq = unique(trans_all, 'rows');
+trans_uniq = sortrows(trans_uniq,[2,1]);
+num_trans = zeros(1, length(trans_uniq));
+for ii = 1:length(trans_uniq)
+    rows = find(trans_all(:,1)==trans_uniq(ii,1) &...
+        trans_all(:,2)==trans_uniq(ii,2));
     num_trans(ii) = length(rows);
-    spikes_trans(:,ii,:) = mean(spikes_stim(:,rows,:),2);
+    spikes_trans(:,ii,:) = mean(spikes_stim(:,rows(20:40),:),2);
 end
-% for t = 1 : length(trans_unique)
-%     trans = trans_unique(t,:);
-%     indices_trans = find(trans_all(:,1)==trans(1) & ...
-%         trans_all(:,2)==trans(2));
-%     num_trans(t) = length(indices_trans);
-% %     spikes_trans(:,t,:) = mean(spikes_stim(:,indices_trans(1:50),:), 2);
-%     spikes_trans(:,t,:) = mean(spikes_stim(:,indices_trans,:), 2);
-% end
-% disp('each frame average of 50 stimuli')
 
 %% plot spikes by transition
 figure
 grammar_flat = reshape(stimInfo.grammar', [1 9]);
-for t = 1 : length(uT)
+for t = 1 : length(trans_uniq)
     subplot(num_words, num_words, t)
     [~, max_spike_indices] = sort(max(spikes_trans(:,t,:), [], 3), 'descend');
-    imagesc(squeeze(spikes_trans(max_spike_indices, t, :)))
-    caxis([0 0.5]); xlabel('frames'); ylabel('neurons');
-    title(['P(' num2str(uT(t,1)) '->' ...
-        num2str(uT(t,2)) ')=' num2str(grammar_flat(t))]);
+    imagesc(squeeze(spikes_trans(max_spike_indices, t, :)), [0 0.5])
+    xlabel('frames'); ylabel('neurons');
+    title(['P(' num2str(trans_uniq(t,1)) '->' ...
+        num2str(trans_uniq(t,2)) ')=' num2str(grammar_flat(t))]);
     colorbar
 end
 disp('neurons sorted by max spike')

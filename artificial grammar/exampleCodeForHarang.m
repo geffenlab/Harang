@@ -29,6 +29,7 @@ end
 
 %% Plot each transition raster order by most responsive neurons
 figure
+grammar_flat = reshape(stimInfo.grammar', [1 9]);
 for ii = 1:size(trast,3)
     subplot(3,3,ii)
     [~,index] = sort(max(trast(:,:,ii),[],2),'descend');
@@ -36,6 +37,8 @@ for ii = 1:size(trast,3)
     imagesc(a, [0 0.5])
     title([ num2str(uT(ii, 1)) '->' num2str(uT(ii,2))])
     xlabel('frames'); ylabel('neurons')
+    title(['P(' num2str(uT(ii,1)) '->' ...
+        num2str(uT(ii,2)) ')=' num2str(grammar_flat(ii))]);
     colorbar
 end
 
