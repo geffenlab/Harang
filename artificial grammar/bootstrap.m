@@ -3,15 +3,14 @@ load('F:\HarangData\K070_20170903_artificialGrammar_02.mat')
 stim = stimInfo.order; % order of word presentation
 uStim = unique(stim); % how many words
 e = events.eventsOn; % event times (i.e. stim Onsets)
-spikes = spikes.raster; % spike times and size
 fr = exptInfo.fr; % frame rate
-stimDur = floor((stimInfo.t_dur+stimInfo.ISI)*fr);
+stimDur = ceil((stimInfo.t_dur+stimInfo.ISI)*fr);
+stimPrec = ceil(.1*fr);
 
 % split up the spikes into stim presentations
-raster  = zeros(size(spikes,1),stimDur+1,length(e));
-for ii = 1:length(e)
-    raster(:,:,ii) = spikes(:,e(ii):e(ii)+stimDur);
-end
+raster = rasterize(spikes.raster, stimDur, events.eventsOn);
+
+
 
 %%
 g = stimInfo.grammar;
@@ -21,8 +20,8 @@ uT = unique(newOrder,'rows'); % unique transitions
 uT = sortrows(uT,[2,1]);
 trials = size(newOrder,1);
 tChunks = 2;
-bs = 1000;
-bsSamp = 10;
+bs = 100;
+bsSamp = 1000;
 chunkSize = floor(trials/tChunks);
 trast = zeros(size(raster,1),size(raster,2),length(uT),tChunks);
 correl = zeros(1,tChunks);
@@ -34,16 +33,20 @@ for c = 1:tChunks
         rows = find(newOrder(on:off,1)==uT(t,1) & ...
             newOrder(on:off,2)==uT(t,2));
         n(c,t) = length(rows);
-        boot = zeros(bs,size(raster,1),size(raster,2));
-        for b = 1 : bs
-            randIndex = randperm(length(rows),bsSamp);
-            boot(b,:,:) = mean(raster(:,:,rows(randIndex)), 3);
-        end
-%         trast(:,:,t,c) = mean(raster(:,:,rows),3);
+%         boot = zeros(bs,size(raster,1),size(raster,2));
+%         for b = 1 : bs
+%             if length(rows) >= bsSamp
+%                 randIndex = randperm(length(rows),bsSamp);
+%             else
+%                 randIndex = randperm(length(rows));
+%             end
+%             boot(b,:,:) = mean(raster(:,:,rows(randIndex)), 3);
+%         end
         trast(:,:,t,c) = mean(boot,1);
     end
     mtr = squeeze(mean(mean(trast(:,:,:,c),1),2));
     correl(c) = corr(g(:),mtr);
+    disp(c)
 end
 disp(correl)
 

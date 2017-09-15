@@ -15,7 +15,7 @@ end
 
 %%
 newOrder = [stim(1:end-1)' stim(2:end)']; % order of transitions
-raster = raster(:,:,2:end); % remove fisrt trial as nothng preceded it
+% raster = raster(:,:,2:end); % remove fisrt trial as nothng preceded it
 uT = unique(newOrder,'rows'); % unique transitions
 uT = sortrows(uT,[2,1]);
 
@@ -26,7 +26,7 @@ for ii = 1:length(uT)
     n(ii) = length(rows);
     trast(:,:,ii) = mean(raster(:,:,rows),3);
 end
-
+    
 %% Plot each transition raster order by most responsive neurons
 figure
 grammar_flat = reshape(stimInfo.grammar', [1 9]);
@@ -34,12 +34,13 @@ for ii = 1:size(trast,3)
     subplot(3,3,ii)
     [~,index] = sort(max(trast(:,:,ii),[],2),'descend');
     a = trast(index,:,ii);
-    imagesc(a, [0 0.5])
+    imagesc(a(1:50,:), [0 0.5])
     title([ num2str(uT(ii, 1)) '->' num2str(uT(ii,2))])
     xlabel('frames'); ylabel('neurons')
     title(['P(' num2str(uT(ii,1)) '->' ...
         num2str(uT(ii,2)) ')=' num2str(grammar_flat(ii))]);
     colorbar
+    plotprefs
 end
 
 %% Work out mean response to each transition across neurons
