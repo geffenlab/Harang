@@ -1,12 +1,10 @@
-function [ raster, uT, nT ] = rasterize_by_trans( data, trans )
+function [ raster, nT ] = rasterize_by_trans( data, trans, uT )
 %Rasterize creates a raster from data
 %   raster is n x 
 %   uT - unique transitions, sorted
 %   nT - num transitions
 
 % unique transitions
-uT = unique(trans,'rows');
-uT = sortrows(uT,[2,1]);
 raster = zeros(size(data,1), size(data,2), length(uT));
 nT = zeros(1,length(uT));
 for t = 1:length(uT)

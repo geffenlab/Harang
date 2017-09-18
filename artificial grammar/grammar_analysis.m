@@ -6,20 +6,48 @@ stimDur = ceil((stimInfo.t_dur+stimInfo.ISI) * exptInfo.fr);
 %%
 raster = rasterize(spikes.raster, stimDur, events.eventsOn);
 % epoch
-epoch_size = 100;
-epoch_onsets = epoch_size*(0:19)+1;
-raster_epoch = rasterize_by_epoch(raster, epoch_size, epoch_onsets);
+epoch_size_f = 100;
+epoch_onsets_f = epoch_size_f*(0:19)+1;
+raster_epoch = rasterize_by_epoch(raster, epoch_size_f, epoch_onsets_f);
 avg_resp_epoch = mean(mean(raster_epoch,4),3);
 % transitions
 trans = [stimInfo.order(1:end-1)' stimInfo.order(2:end)'];
-[raster_trans, uT, nT] = rasterize_by_trans(raster, trans);
+uT = get_unique_transitions(trans);
+[raster_trans, nT] = rasterize_by_trans(raster, trans, uT);
 
 %%
-raster_trans_epoch = zeros(size(raster,1),size(raster,2),...
-    );
-for e = 1 : length(epoch_onsets)
-    
+epoch_size_s = 200;
+epoch_onsets_s = epoch_size_s*(0:9)+1;
+epoch_onsets_s(end) = epoch_onsets_s(end)-1;
+raster_trans_epoch = rasterize_by_trans_epoch(raster,trans,uT,...
+    epoch_size_s,epoch_onsets_s);
+%%
+trans_inst = zeros(length(uT),length(epoch_onsets_s));
+for t = 1 : length(uT)
+    for e = 1:length(epoch_onsets_s)
+        stims = epoch_onsets_s(e):epoch_onsets_s(e)+epoch_size_s-1;
+        trans_inst(t,e) = sum(trans(stims,1)==uT(t,1) & ...
+            trans(stims,2)==uT(t,2));
+    end
 end
+%%
+subplot(1,2,1)
+imagesc(squeeze(mean(mean(raster_trans_epoch,1),2)))
+colormap('gray'); xlabel('epoch'); colorbar; plotprefs;
+title('mean spikes for 316 neurons')
+set(gca,'yticklabel',{...
+    'P(1|1)=0.1','P(2|1)=0.7','P(3|1)=0.3',...
+    'P(1|2)=0.2','P(2|2)=0.2','P(3|2)=0.6',...
+    'P(1|3)=0.7','P(2|3)=0.1','P(3|3)=0.1'}) 
+subplot(1,2,2)
+imagesc(trans_inst); colorbar; plotprefs;
+colormap('gray'); xlabel('(each 200 stimuli presentations)');
+title('number of stimuli transitions'); set(gca,'yticklabel',{})
+%%
+[~,index] = sort(max(raster_trans(:,:,2),[],2),'descend');
+raster(index(51:end),:,:) = [];
+%%
+
 
 %% Plot each transition raster order by most responsive neurons
 figure
