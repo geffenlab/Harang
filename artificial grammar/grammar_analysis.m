@@ -17,7 +17,7 @@ uT = get_unique_transitions(trans);
 
 %%
 epoch_size_s = 200;
-epoch_onsets_s = epoch_size_s*(0:9)+1;
+epoch_onsets_s = epoch_size_s*(0:9)+1; 
 epoch_onsets_s(end) = epoch_onsets_s(end)-1;
 raster_trans_epoch = rasterize_by_trans_epoch(raster,trans,uT,...
     epoch_size_s,epoch_onsets_s);
@@ -32,13 +32,16 @@ for t = 1 : length(uT)
 end
 %%
 subplot(1,2,1)
-imagesc(squeeze(mean(mean(raster_trans_epoch,1),2)))
+raster_trans_epoch_mean = squeeze(mean(mean(raster_trans_epoch,1),2));
+imagesc([raster_trans_epoch_mean; ...
+    mean(raster_trans_epoch_mean, 1)])
+caxis([0 0.03])
 colormap('gray'); xlabel('epoch'); colorbar; plotprefs;
 title('mean spikes for 316 neurons')
 set(gca,'yticklabel',{...
     'P(1|1)=0.1','P(2|1)=0.7','P(3|1)=0.3',...
     'P(1|2)=0.2','P(2|2)=0.2','P(3|2)=0.6',...
-    'P(1|3)=0.7','P(2|3)=0.1','P(3|3)=0.1'}) 
+    'P(1|3)=0.7','P(2|3)=0.1','P(3|3)=0.1', 'average'}) 
 subplot(1,2,2)
 imagesc(trans_inst); colorbar; plotprefs;
 colormap('gray'); xlabel('(each 200 stimuli presentations)');
