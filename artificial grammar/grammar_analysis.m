@@ -41,9 +41,9 @@ title('mean spikes for 316 neurons')
 set(gca,'yticklabel',{...
     'P(1|1)=0.1','P(2|1)=0.7','P(3|1)=0.3',...
     'P(1|2)=0.2','P(2|2)=0.2','P(3|2)=0.6',...
-    'P(1|3)=0.7','P(2|3)=0.1','P(3|3)=0.1', 'average'}) 
+    'P(1|3)=0.7','P(2|3)=0.1','P(3|3)=0.1', 'average'})
 subplot(1,2,2)
-imagesc(trans_inst); colorbar; plotprefs;
+imagesc([trans_inst; mean(trans_inst, 1)]); colorbar; plotprefs;
 colormap('gray'); xlabel('(each 200 stimuli presentations)');
 title('number of stimuli transitions'); set(gca,'yticklabel',{})
 %%
