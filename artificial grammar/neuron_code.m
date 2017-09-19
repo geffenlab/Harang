@@ -5,15 +5,18 @@ stimDur = ceil((stimInfo.t_dur+stimInfo.ISI) * exptInfo.fr);
 raster = rasterize(spikes.raster, stimDur, events.eventsOn);
 raster_stim = squeeze(mean(raster, 2));
 input_raster = [stimInfo.order==1;stimInfo.order==2;stimInfo.order==3];
-%%
+%% standardize raster
+raster_stim_z = raster_stim - repmat(mean(raster_stim,2),[1 2000]);
+raster_stim_z = raster_stim_z ./ repmat(std(raster_stim,0,2),[1 2000]);
+%% get most responsive neurons
 [~,index] = sort(mean(raster_stim,2),'descend');
-top = 100;
+top = 316;
 raster_stim_top = raster_stim(index(1:top),:);
 figure(1);
 bar(mean(raster_stim(index,:),2))
 %%
-c = corr(input_raster', raster_stim_top');
-threshold = 0.07;
+c = corr(input_raster', raster_stim_z');
+threshold = 0.05;
 figure(2)
 subplot(2,2,1);
 imagesc(c); title('correlations b/t stimuli & neurons');
@@ -42,4 +45,16 @@ for r = 1 : n_resp
     boxplot(raster_stim_top(stim_resp(r),:)',stimInfo.order');
     plotprefs; set(findobj(gca,'type','line'),'linew',2);
 end
+text(0.5,0.5,'spikes','Rotation',90,'FontSize',16)
+text(0.5,0.5,'stimuli','FontSize',16)
+text(0.5,0.5,'spikes from neurons most correlated to stimuli 1','FontSize',16)
+%% population coding
+figure(4);clf
+top_corr = 10;
+[~,top_corr_index] = sort(max(abs(c),[],1), 'descend');
+[idx, C, sumd] = kmeans(raster_stim(top_corr_index(1:top_corr),:)',3);
+plot(stimInfo.order(1:100),'o');
+hold on; plot(idx(1:100),'.');
+hold off
+plotprefs; axis([0 100 0 4])
 
