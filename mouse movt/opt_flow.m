@@ -24,7 +24,7 @@ motion = diff;
 plot(motion./mean(motion(1:100)),'.-')
 
 %% find frames to remove
-threshold = 3;
+threshold = 2.5;
 frames_to_remove = find(motion./mean(motion(1:100)) > threshold);
 frames_filtered = frames;
 frames_filtered(:,:,frames_to_remove) = [];
@@ -39,11 +39,11 @@ for i = 1 : size(frames,3)
     subplot(1,2,2);
     if i == frames_to_remove(j)
         j = j + 1;
-        title(['SKIP ' num2str(j)]); pause(0.1);
+        title(['SKIP ' num2str(j)]); pause(0.2);
     else
         imshow(frames(:,:,i));
     end
-    pause(0.02)
+    pause(0.01)
 end
 
 
