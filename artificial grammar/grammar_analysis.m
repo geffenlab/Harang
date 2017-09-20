@@ -4,7 +4,7 @@ uniqStim = unique(stimInfo.order); % how many words
 stimDur = ceil((stimInfo.t_dur+stimInfo.ISI) * exptInfo.fr);
 
 %%
-raster = rasterize(spikes.raster, stimDur, events.eventsOn);
+raster = rasterize(spikes.raster, stimDur+4, events.eventsOn-4);
 % epoch
 epoch_size_f = 100;
 epoch_onsets_f = epoch_size_f*(0:19)+1;
@@ -71,4 +71,55 @@ mtr = squeeze(mean(mean(raster_trans,1),2));
 mtr = reshape(mtr,[3,3])';
 c = corr(stimInfo.grammar(:),mtr(:));
 disp(['corr b/t grammar & mean response = ' num2str(c)])
+
+%% plot individual neuron responses
+clf
+n = 5;
+o = stimInfo.order;
+up = 0.06;
+for j = 1 : floor(316/n)
+figure
+up = max(mean(mean(raster(:,:,:),1),2));
+for i = 1 : n
+    neuron = n*(j-1)+i;
+    r = squeeze(raster(neuron,:,:));
+    % plot mean responses to stimuli
+    subplot(n,4,4*(i-1)+1); hold on
+    axis([0 inf 0 inf]); plotprefs;
+    ylabel(['neuron ' num2str(neuron)]);
+    plot(mean(r(:,o==1),2),'.-')
+    plot(mean(r(:,o==2),2),'.-')
+    plot(mean(r(:,o==3),2),'.-')
+    if i == 1
+        title('mean spikes'); legend({'word 1','word 2','word 3'})
+    end
+    % plot mean responses to stimuli 1
+    subplot(n,4,4*(i-1)+2); hold on
+    axis([0 inf 0 inf]); plotprefs
+    plot(mean(r(:,(o(1:end-1)==1 & o(2:end)==1)==1),2),'.-')
+    plot(mean(r(:,(o(1:end-1)==2 & o(2:end)==1)==1),2),'.-')
+    plot(mean(r(:,(o(1:end-1)==3 & o(2:end)==1)==1),2),'.-')
+    if i == 1
+        title('spikes to stim 1 from...');
+    end
+    subplot(n,4,4*(i-1)+3); hold on
+    axis([0 inf 0 inf]); plotprefs
+    plot(mean(r(:,(o(1:end-1)==1 & o(2:end)==2)==1),2),'.-')
+    plot(mean(r(:,(o(1:end-1)==2 & o(2:end)==2)==1),2),'.-')
+    plot(mean(r(:,(o(1:end-1)==3 & o(2:end)==2)==1),2),'.-')
+    if i == 1
+        title('spikes to stim 2 from...');
+    end
+    subplot(n,4,4*(i-1)+4); hold on
+    axis([0 inf 0 inf]); plotprefs
+    plot(mean(r(:,(o(1:end-1)==1 & o(2:end)==3)==1),2),'.-')
+    plot(mean(r(:,(o(1:end-1)==2 & o(2:end)==3)==1),2),'.-')
+    plot(mean(r(:,(o(1:end-1)==3 & o(2:end)==3)==1),2),'.-')
+    if i == 1
+        title('spikes to stim 3 from...');
+    end
+end
+saveas(gcf,['spikes by transition from n=' num2str(neuron-n+1) ' to ' ...
+        num2str(neuron) '.png'])
+end
 

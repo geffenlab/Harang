@@ -5,17 +5,17 @@ stimDur = ceil((stimInfo.t_dur+stimInfo.ISI) * exptInfo.fr);
 raster = rasterize(spikes.raster, stimDur, events.eventsOn);
 raster_stim = squeeze(mean(raster, 2));
 input_raster = [stimInfo.order==1;stimInfo.order==2;stimInfo.order==3];
-%% standardize raster
-raster_stim_z = raster_stim - repmat(mean(raster_stim,2),[1 2000]);
-raster_stim_z = raster_stim_z ./ repmat(std(raster_stim,0,2),[1 2000]);
+% %% standardize raster
+% raster_stim_z = raster_stim - repmat(mean(raster_stim,2),[1 2000]);
+% raster_stim_z = raster_stim_z ./ repmat(std(raster_stim,0,2),[1 2000]);
 %% get most responsive neurons
 [~,index] = sort(mean(raster_stim,2),'descend');
 top = 316;
 raster_stim_top = raster_stim(index(1:top),:);
 figure(1);
 bar(mean(raster_stim(index,:),2))
-%%
-c = corr(input_raster', raster_stim_z');
+%% calculate most correlated/anticorrelated neurons
+c = corr(input_raster', raster_stim');
 threshold = 0.05;
 figure(2)
 subplot(2,2,1);
@@ -33,7 +33,7 @@ c_t = (c>threshold) - (c<(-1*threshold));
 imagesc(c_t); plotprefs; colorbar; colormap('gray'); set(gca,'ytick',1:3);
 title(['correlations > ' num2str(threshold) ' & '...
     'correlations < -' num2str(threshold)]);
-%%
+%% create boxplots of responses of neurons most correlated with stimulus 1
 % scatter(stimInfo.order,raster_stim(133,:),'*');
 figure(3);clf
 stim = 1;
@@ -42,8 +42,9 @@ n_resp = length(stim_resp);
 n_row = 3;
 for r = 1 : n_resp
     subplot(n_row,ceil(n_resp/n_row),r)
-    boxplot(raster_stim_top(stim_resp(r),:)',stimInfo.order');
+    boxplot(raster_stim(stim_resp(r),:)',stimInfo.order');
     plotprefs; set(findobj(gca,'type','line'),'linew',2);
+    title(['neuron ' num2str(stim_resp(r))])
 end
 text(0.5,0.5,'spikes','Rotation',90,'FontSize',16)
 text(0.5,0.5,'stimuli','FontSize',16)
