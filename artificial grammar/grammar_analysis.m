@@ -14,6 +14,8 @@ avg_resp_epoch = mean(mean(raster_epoch,4),3);
 trans = [stimInfo.order(1:end-1)' stimInfo.order(2:end)'];
 uT = get_unique_transitions(trans);
 [raster_trans, nT] = rasterize_by_trans(raster, trans, uT);
+% stimulus
+raster_stim = squeeze(mean(raster, 2));
 
 %%
 epoch_size_s = 200;
@@ -122,4 +124,62 @@ end
 saveas(gcf,['spikes by transition from n=' num2str(neuron-n+1) ' to ' ...
         num2str(neuron) '.png'])
 end
+
+%% pca
+p = pca(raster_stim');
+p_orthnorm = inv(diag(std(raster_stim')))* p;
+% rsp = p' * raster_stim;
+rsp = raster_stim * p;
+o = stimInfo.order;
+%%
+for i = 1 : 3
+    s = find(stimInfo.order==i);
+    scatter3(rsp(1,s),rsp(2,s),rsp(3,s),'.');
+    hold on
+end
+hold off
+legend({'ones','twos','threes'})
+xlabel('dim1'); ylabel('dim2'); zlabel('dim3')
+plotprefs
+%%
+tr = [1 1; 2 1; 3 1; 1 2; 2 2; 3 2; 1 3; 2 3; 3 3];
+for t = 1 : 9
+    s = (o(1:end-1)==tr(t,1) & o(2:end)==tr(t,2)) == 1;
+    scatter3(rsp(1,s),rsp(2,s),rsp(3,s),'.');
+    hold on
+end
+hold off
+legend({...
+    '1->1 (P=0.1)','2->1 (P=0.7)','3->1 (P=0.3)',...
+    '1->2 (P=0.2)','2->2 (P=0.2)','3->2 (P=0.6)',...
+    '1->3 (P=0.7)','2->3 (P=0.1)','3->3 (P=0.1)'
+    })
+xlabel('dim1'); ylabel('dim2'); zlabel('dim3')
+plotprefs
+
+%% 
+[~, score, ~] = pca(raster_stim');
+scatter3(score(:,1),score(:,2),score(:,3),32,1:size(score,1))
+colormap jet; colorbar
+box on; axis([-1 1 -1 1 -1 1]); axis vis3d
+plotprefs; hold on
+for i = 1 : 3
+    s = find(stimInfo.order==i);
+    scatter3(score(s,1),score(s,2),score(s,3),'.');
+end
+hold off
+legend({'time-sorted','ones','twos','threes'})
+%% sort by time and cluster
+range = 1:2000;
+[coeff, score, latent] = pca(raster_stim(:,range)');
+for i = 1 : 3
+    s = find(stimInfo.order(range)==i);
+    scatter3(score(s,1),score(s,2),score(s,3),'.');
+    hold on
+end
+hold off; legend({'ones','twos','three'})
+plotprefs; box on;
+axis([-1 1 -1 1 -1 1]); axis vis3d
+xlabel('dim1'); ylabel('dim2'); zlabel('dim3')
+
 

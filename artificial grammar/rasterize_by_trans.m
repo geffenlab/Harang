@@ -10,7 +10,7 @@ nT = zeros(1,length(uT));
 for t = 1:length(uT)
     rows = find(trans(:,1)==uT(t,1) & trans(:,2)==uT(t,2));
     nT(t) = length(rows);
-    raster(:,:,t) = mean(data(:,:,rows),3);
+    raster(:,:,t) = max(data(:,:,rows),[],3);
 end
 
 end
