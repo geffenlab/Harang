@@ -1,9 +1,10 @@
+%% load data
 load('F:\HarangData\K070_20170903_artificialGrammar_02.mat')
 
 uniqStim = unique(stimInfo.order); % how many words
 stimDur = ceil((stimInfo.t_dur+stimInfo.ISI) * exptInfo.fr);
 
-%%
+%% basic rasterization
 raster = rasterize(spikes.raster, stimDur+4, events.eventsOn-4);
 % epoch
 epoch_size_f = 100;
@@ -15,15 +16,15 @@ trans = [stimInfo.order(1:end-1)' stimInfo.order(2:end)'];
 uT = get_unique_transitions(trans);
 [raster_trans, nT] = rasterize_by_trans(raster, trans, uT);
 % stimulus
-raster_stim = squeeze(mean(raster, 2));
+raster_stim = squeeze(mean(raster(:,5:end,:), 2));
 
-%%
+%% rasterize by transitions & epoch
 epoch_size_s = 200;
 epoch_onsets_s = epoch_size_s*(0:9)+1; 
 epoch_onsets_s(end) = epoch_onsets_s(end)-1;
 raster_trans_epoch = rasterize_by_trans_epoch(raster,trans,uT,...
     epoch_size_s,epoch_onsets_s);
-%%
+%% get instances of transitions
 trans_inst = zeros(length(uT),length(epoch_onsets_s));
 for t = 1 : length(uT)
     for e = 1:length(epoch_onsets_s)
@@ -121,8 +122,8 @@ for i = 1 : n
         title('spikes to stim 3 from...');
     end
 end
-saveas(gcf,['spikes by transition from n=' num2str(neuron-n+1) ' to ' ...
-        num2str(neuron) '.png'])
+% saveas(gcf,['spikes by transition from n=' num2str(neuron-n+1) ' to ' ...
+%         num2str(neuron) '.png'])
 end
 
 %% pca
@@ -156,8 +157,7 @@ legend({...
     })
 xlabel('dim1'); ylabel('dim2'); zlabel('dim3')
 plotprefs
-
-%% 
+%% view pca with time and stimulus
 [~, score, ~] = pca(raster_stim');
 scatter3(score(:,1),score(:,2),score(:,3),32,1:size(score,1))
 colormap jet; colorbar
@@ -169,12 +169,12 @@ for i = 1 : 3
 end
 hold off
 legend({'time-sorted','ones','twos','threes'})
-%% sort by time and cluster
-range = 1:2000;
+%% view pca, chunk of time and color by stimulus
+range = 1:100;
 [coeff, score, latent] = pca(raster_stim(:,range)');
 for i = 1 : 3
     s = find(stimInfo.order(range)==i);
-    scatter3(score(s,1),score(s,2),score(s,3),'.');
+    plot3(score(s,1),score(s,2),score(s,3),'.-');
     hold on
 end
 hold off; legend({'ones','twos','three'})
@@ -182,4 +182,53 @@ plotprefs; box on;
 axis([-1 1 -1 1 -1 1]); axis vis3d
 xlabel('dim1'); ylabel('dim2'); zlabel('dim3')
 
+%% see sequence
+d = ~diff(stimInfo.order);
+seq = [1 1];
+di = strfind(d, seq);
+df = raster_stim(:,di) - raster_stim(:,di+length(di));
+df_frac_dec = mean(df,2)/mean(raster_stim(di),2);
+mean(df_frac_dec)
+%% 
+seq1112 = strfind(stimInfo.order,[1 1 1 2]);
+seq1113 = strfind(stimInfo.order,[1 1 1 3]);
+seq2221 = strfind(stimInfo.order,[2 2 2 1]);
+seq2223 = strfind(stimInfo.order,[2 2 2 3]);
+seq3331 = strfind(stimInfo.order,[3 3 3 1]);
+seq3332 = strfind(stimInfo.order,[3 3 3 2]);
+%%
+seq = seq2221;
+neurons = 1:100;
+for s = 7 % 1 : length(seq)
+    dat = zeros(length(neurons),44);
+    for n = 1:length(neurons)
+        neur = neurons(n);
+        dat(n,:) = [raster(neur,5:end,seq(s))...
+            raster(neur,5:end,seq(s)+1)...
+            raster(neur,5:end,seq(s)+2)...
+            raster(neur,5:end,seq(s)+3)];
+    end
+    imagesc(dat); hold on;
+    plot([11.49 11.51],[0 316],'r');
+    plot([22.49 22.51],[0 316],'r');
+    plot([33.49 33.51],[0 316],'r');
+    for n = 1:length(neurons)
+        plot([0 44],[n+0.5 n+0.5],'b');
+    end
+    hold off; colormap gray; colorbar; plotprefs
+    title(['seq 2221 at trial ' num2str(seq(s)) ' neurons ' ...
+        num2str(neurons(1)) ' to ' num2str(neurons(end))])
+end
+%%
+% for n = 1 : size(raster,1)
+%     dat = [raster(n,5:end,seq2221(1))...
+%         raster(n,5:end,seq2221(1)+1)...
+%         raster(n,5:end,seq2221(1)+2)...
+%         raster(n,5:end,seq2221(1)+3)];
+%     plot(dat,'.-'); hold on
+%     plot([1 12 23 34], [0 0 0 0],'*'); hold off
+%     title(['n' num2str(n)])
+%     plotprefs; axis([0 45 -.2 1])
+%     pause
+% end
 
