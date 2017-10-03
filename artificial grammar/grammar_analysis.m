@@ -198,8 +198,8 @@ seq3331 = strfind(stimInfo.order,[3 3 3 1]);
 seq3332 = strfind(stimInfo.order,[3 3 3 2]);
 %%
 seq = seq2221;
-neurons = 1:100;
-for s = 7 % 1 : length(seq)
+neurons = 201:316;
+for s = 19 % 1 : length(seq)
     dat = zeros(length(neurons),44);
     for n = 1:length(neurons)
         neur = neurons(n);
