@@ -1,8 +1,9 @@
 function [ frames ] = get_frames( file_path, start_time, num_frames )
 %get_frames gets frames
 
-vid_reader = VideoReader(file_path,'CurrentTime',start_time);
+vid_reader = VideoReader(file_path);%,'CurrentTime',start_time);
 f = readFrame(vid_reader);
+vid_reader = VideoReader(file_path);
 frames = uint8(zeros(size(f,1),size(f,2),num_frames));
 frames(:,:,1) = f;
 

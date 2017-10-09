@@ -1,11 +1,13 @@
 load('F:\HarangData\K074_20170905_2P_FRA_01.mat')
 load('F:\HarangData\20170905K074_FRA_log_986_02_movt.mat')
+%%
 stimInfo = stimInfo.stimInfo;
 raster = spikes.raster;
+raster = calcium.npilSubTraces;
 %% normalize spikes
-raster_z = zscore(raster')';
+raster_norm = log(raster);
 %% pca
-[coeff, score, ~] = pca(raster_z');
+[coeff, score, ~] = pca(raster_norm');
 imagesc(coeff(:,1:100)); title('principal components'); axis square
 ylabel('coefficients'); xlabel('components');
 colormap gray; colorbar

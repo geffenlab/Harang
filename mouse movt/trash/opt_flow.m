@@ -1,11 +1,11 @@
 
-directory = 'F:/videoData/';
+directory = './';%'F:/videoData/';
 addpath(directory);
 file_name = '20170905K074_FRA_log_986_02';
-file_type = '.avi';
+file_type = '.mp4';%'.avi';
 file_path = [directory file_name file_type];
 % start_time = 20*60 + 12;
-start_time = 20*60 + 10;
+start_time = 0;%20*60 + 10;
 % start_time = 1;
 % start_time = 1;
 % num_frames = 2 * 30;
@@ -16,9 +16,9 @@ frames_per_flow = 1;
 frames = get_frames(file_path, start_time, num_frames);
 
 %%
-% opt_flow = get_opt_flow_mag_sum(frames, frames_per_flow);
-diff = get_frame_diffs(frames, frames_per_flow);
-motion = diff;
+flow = get_opt_flow_mag_sum(frames, frames_per_flow);
+% diff = get_frame_diffs(frames, frames_per_flow);
+motion = flow;
 
 %%
 plot(motion./mean(motion(1:100)),'.-')
@@ -45,5 +45,3 @@ for i = 1 : size(frames,3)
     end
     pause(0.01)
 end
-
-
