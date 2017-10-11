@@ -1,9 +1,8 @@
 %%
-% load('F:\HarangData\K070_20170903_artificialGrammar_02.mat')
-load('F:\HarangData\K070_20171005_SSA_01.mat')
+load('F:\HarangData\K070_20170903_artificialGrammar_02.mat')
 
 %%
-stim_dur = ceil((stimInfo.tDur+stimInfo.ICI)/1e3 * exptInfo.fr);
+stim_dur = ceil((stimInfo.t_dur+stimInfo.ISI)/1e3 * exptInfo.fr);
 raster = rasterize(spikes.raster, stim_dur, events.eventsOn);
 
 %%
