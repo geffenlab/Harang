@@ -1,7 +1,9 @@
 %%
-load('F:\HarangData\K070_20170903_artificialGrammar_02.mat')
+% load('F:\HarangData\K070_20170903_artificialGrammar_02.mat')
+load('F:\HarangData\K070_20171005_SSA_01.mat')
+
 %%
-stim_dur = ceil((stimInfo.t_dur+stimInfo.ISI) * exptInfo.fr);
+stim_dur = ceil((stimInfo.tDur+stimInfo.ICI)/1e3 * exptInfo.fr);
 raster = rasterize(spikes.raster, stim_dur, events.eventsOn);
 
 %%
@@ -39,13 +41,13 @@ for s = 4 : length(ssa_seq)
         neuron = neurons(n);
         for i = 1 : length(indices)
             index = indices(i);
-            dat = [raster(neuron,:,index) raster(neuron,:,index+1)...
+            dat_mean = [raster(neuron,:,index) raster(neuron,:,index+1)...
                 raster(neuron,:,index+2) raster(neuron,:,index+3)];
-            plot(dat,'k','LineWidth',2); hold on;
+            plot(dat_mean,'k','LineWidth',2); hold on;
             title(['Seq [' num2str(ssa_seq{s}) ...
                 ']    Neuron ' num2str(neuron)...
                 '    Trial ' num2str(index)])
-            m = ceil(max(dat));
+            m = ceil(max(dat_mean));
             plot([12-.0001 12+.0001],[0 m],'b--','LineWidth',2)
             plot([23-.0001 23+.0001],[0 m],'b--','LineWidth',2)
             plot([34-.0001 34+.0001],[0 m],'b--','LineWidth',2)
@@ -61,11 +63,18 @@ for s = 4 : length(ssa_seq)
     indices = seq_ind{s};
     for n = 1 : length(neurons)
         neuron = neurons(n);
-        dat = mean([mean(raster(neuron,:,indices),3)'...
+        dat_mean = mean([mean(raster(neuron,:,indices),3)'...
             mean(raster(neuron,:,indices+1),3)'...
             mean(raster(neuron,:,indices+2),3)'...
             mean(raster(neuron,:,indices+3),3)']);
-        plot(dat,'k','LineWidth',2);
+        dat_max = mean([max(raster(neuron,:,indices),3)'...
+            max(raster(neuron,:,indices+1),3)'...
+            max(raster(neuron,:,indices+2),3)'...
+            max(raster(neuron,:,indices+3),3)']);
+%         if issorted(dat_mean,'monotonic')
+%             
+%         end
+        plot(dat_mean,'k','LineWidth',2);
         title(['Seq [' num2str(ssa_seq{s}) ...
             ']    Neuron ' num2str(neuron)])
         axis([0 5 0 inf])

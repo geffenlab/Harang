@@ -1,6 +1,6 @@
-function fm = get_mvmt(file)
+function fm = calc_mvmt(file)
+% get_mvmt finds magnitude of movement in video file
 
-% file = '20170905K074_FRA_log_986_02.mp4';
 v = VideoReader(file);
 nf = v.NumberOfFrames;
 v = VideoReader(file);

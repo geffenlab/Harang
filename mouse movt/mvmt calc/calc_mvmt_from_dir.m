@@ -1,8 +1,6 @@
+function calc_mvmt_from_dir( vid_dir, mot_dir )
+%calc_mvmt_from_dir 
 
-% convert_vids;
-vid_dir = 'F:/mp4/';
-mot_dir = 'F:/motionData/';
-addpath(vid_dir)
 dirs = dir(vid_dir);
 for i = 1 : length(dirs)
     tic
@@ -17,7 +15,10 @@ for i = 1 : length(dirs)
         continue
     end
     disp(['Analyzing file ' d '...'])
-    fm = get_mvmt([vid_dir d]);
+    fm = calc_mvmt([mp3_dir d]);
     save(mot_file, 'fm')
     toc
 end
+
+end
+

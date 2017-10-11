@@ -1,6 +1,5 @@
-function [  ] = convert_to_mp4( reader, filepath )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+function convert_to_mp4( reader, filepath )
+%convert_to_mp4 convert video in reader (VideoReader) to mp4 @ filepath
 
 v = VideoWriter(filepath, 'MPEG-4');
 
