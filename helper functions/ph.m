@@ -15,12 +15,12 @@ classdef ph
              set(gca,'DefaultFigureWindowStyle','docked')
          end
          
-         function imgsqz(dat, varargin)
-             imagesc(squeeze(dat), varargin{:})
+         function h = imgsqz(dat, varargin)
+             h = imagesc(squeeze(dat), varargin{:});
          end
          
-         function pltsqz(dat, varargin)
-             plot(squeeze(dat), varargin{:})
+         function h = pltsqz(dat, varargin)
+             h = plot(squeeze(dat), varargin{:});
          end
          
      end
