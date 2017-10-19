@@ -8,21 +8,41 @@ dur = ceil(stim_dur+ici_dur);
 %%
 stim = zeros(1,size(spikes.raster,2));
 stim_ind = repelem(events.eventsOn',ceil(stim_dur));
-stim_ind = stim_ind + repmat(1:ceil(stim_dur),[1 length(events.eventsOn)]);
+stim_ind = stim_ind + repmat(0:ceil(stim_dur)-1,[1 length(events.eventsOn)]);
 stim(stim_ind) = 1;
 %%
 predur = 50;
-postdur = 200;
-r_ca = dh.rasterize(calcium.npilSubTraces,dur+predur,...
+post_stim_dur = 50;
+post_seq_dur = 200;
+r_ca = dh.rasterize(calcium.npilSubTraces,dur+predur+post_stim_dur,...
     events.eventsOn-predur);
-r_sp = dh.rasterize(spikes.raster,dur+predur,events.eventsOn-predur);
-r_in = dh.rasterize(stim,dur+predur,events.eventsOn-predur);
-seq_r_ca = dh.rasterize(calcium.npilSubTraces,dur*8+predur+postdur,...
+r_sp = dh.rasterize(spikes.raster,dur+predur+post_stim_dur,...
+    events.eventsOn-predur);
+r_in = dh.rasterize(stim,dur+predur+post_stim_dur,...
+    events.eventsOn-predur);
+seq_r_ca = dh.rasterize(calcium.npilSubTraces,dur*8+predur+post_seq_dur,...
     events.eventsOn(1:8:end)-predur);
-seq_r_sp = dh.rasterize(spikes.raster,dur*8+predur+postdur,...
+seq_r_sp = dh.rasterize(spikes.raster,dur*8+predur+post_seq_dur,...
     events.eventsOn(1:8:end)-predur);
-seq_r_in = dh.rasterize(stim,dur*8+predur+postdur,...
+seq_r_in = dh.rasterize(stim,dur*8+predur+post_seq_dur,...
     events.eventsOn(1:8:end)-predur);
+%% find neurons with most variable activity
+var_n = var(calcium.npilSubTraces,0,2);
+% seq_r_ca(n_hi_var(n),:,stimInfo.order==1);
+n_hi_var = find(var_n > .5e6)';
+%%
+seq_r_in_3_4 = seq_r_in;
+seq_r_in_3_4(:,:,stimInfo.order==1 | stimInfo.order==2) = 0;
+seq_r_in_4 = seq_r_in;
+seq_r_in_4(:,:,stimInfo.order==1 | stimInfo.order==2 | ...
+    stimInfo.order==3) = 0;
+seq_r_in_1_2 = seq_r_in;
+seq_r_in_1_2(:,:,stimInfo.order==3 | stimInfo.order==4) = 0;
+seq_r_in_2 = seq_r_in;
+seq_r_in_2(:,:,stimInfo.order==1 | stimInfo.order==3 | ...
+    stimInfo.order==4) = 0;
+
+
 %% plot neurons for seq
 seq = 1;
 for n = 1 : 40
@@ -56,10 +76,6 @@ for s = 1 : 4
     ph.imgsqz(mean(seq_r_ca(:,:,stimInfo.order==s),3))
     title(titles{s})
 end
-%% find neurons with most variable activity
-var_n = var(calcium.npilSubTraces,0,2);
-% seq_r_ca(n_hi_var(n),:,stimInfo.order==1);
-n_hi_var = find(var_n > .5e6)';
 %% plot those neurons
 for s = 1 : 4
     subplot(1,4,s)
@@ -67,13 +83,13 @@ for s = 1 : 4
     title(titles{s})
 end
 %% plot those neurons individually
-for n = 46 %1 : length(n_hi_var)
+for n = 1 : length(n_hi_var)
     clf; hold on;
     hs = zeros(1,5);
     for s = 1 : 4
-%         data = seq_r_ca(n_hi_var(n),:,stimInfo.order==s);
-        data = seq_r_ca(n,:,stimInfo.order==s);
-        y = smooth(mean(data,3),10)';
+        data = seq_r_ca(n_hi_var(n),:,stimInfo.order==s);
+%         data = seq_r_ca(n,:,stimInfo.order==s);
+        y = smooth(mean(data,3),5)';
         std_y = std(data,0,3)/sqrt(length(y));
         x = 1:length(y);
         hs(s) = ph.pltsqz(y,'LineWidth',2);
@@ -81,16 +97,16 @@ for n = 46 %1 : length(n_hi_var)
         patch([x fliplr(x)], [y-std_y, fliplr(y)+std_y], color,...
             'facealpha',0.3,'edgecolor','none')
     end
-    in = seq_r_in(1,:,seq);
+    in = seq_r_in(1,:,1);
     fig = gca;
     hs(5) = ph.pltsqz(find(in),0*in(in>0),'b*','LineWidth',6);
-%     title(['neuron ' num2str(n_hi_var(n)) ' var ' num2str(var_n(n_hi_var(n)),'%1.2g')])
+    title(['neuron ' num2str(n_hi_var(n)) ' var ' num2str(var_n(n_hi_var(n)),'%1.2g')])
     onsets = strfind(in,01);
-    for i = 1 : length(onsets)
+    for i = 1 : length(onsets)  
         plot([onsets(i)-0.001 onsets(i)+0.001],[0 fig.YLim(2)],'k--')
     end
     plot([])
-    title(['neuron ' num2str(n)])
+%     title(['neuron ' num2str(n)])
     legend(hs,{'AA','AB','BB','BA','stimulus'})
     hold off; ph.prefs; pause
 end
@@ -120,4 +136,36 @@ for s = 1 : 4
     ph.imgsqz(mean(seq_r_ca(:,:,stimInfo.order(half1)==s),3))
     title(titles{s})
 end
+%%
+clf; hold on
+ph.prefs
+ph.pltsqz(dh.split_concat(seq_r_sp(62,:,:)),'LineWidth',2);
+ph.pltsqz(dh.split_concat(seq_r_in_3_4));
+ph.pltsqz(dh.split_concat(seq_r_in_4));
+legend({'spikes (neuron 62)','B...B','B...A'})
+%%
+clf; hold on
+ph.prefs
+c = .7;
+ph.pltsqz(dh.split_concat(seq_r_sp(37,:,:)),'LineWidth',2);
+ph.pltsqz(dh.split_concat(c*seq_r_in_1_2));
+ph.pltsqz(dh.split_concat(c*seq_r_in_2));
+% ph.pltsqz(dh.split_concat(c*seq_r_in_3_4),'LineWidth',2);
+% ph.pltsqz(dh.split_concat(c*seq_r_in_4),'LineWidth',2);
+legend({'spikes (neuron 37)','A...A','A...B'})
+%%
+clf; hold on
+ph.prefs
+ph.pltsqz(dh.split_concat(seq_r_sp(42,:,:)),'LineWidth',2);
+ph.pltsqz(dh.split_concat(seq_r_in_3_4));
+ph.pltsqz(dh.split_concat(seq_r_in_4));
+legend({'spikes (neuron 42)','B...B','B...A'})
+%%
+% clf; hold on; ph.prefs
+% ph.pltsqz(smooth(mean(r_sp(62,:,8*find(stimInfo.order==1)),3),10),'LineWidth',2);
+% ph.pltsqz(smooth(mean(r_sp(62,:,8*find(stimInfo.order==1)+7),3),10),'LineWidth',2);
+%%
+clf; hold on; ph.prefs;
+ph.pltsqz(smooth(mean(seq_r_sp(62,:,stimInfo.order==1),3),1),'LineWidth',2)
+ph.pltsqz(.1*seq_r_in(:,:,1),'LineWidth',2)
 
