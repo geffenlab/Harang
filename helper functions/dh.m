@@ -24,8 +24,19 @@ classdef dh
                  off = on+size(dat,2)-1;
                  new_dat(:,on:off) = dat(:,:,i);
              end
-         end
+        end
         
+        function resps = max_in_windows( responses, duration, onsets )
+            %max_in_windows finds the max responses in each window
+            %   window = onset : onset + duration - 1
+            resps = zeros(size(responses,1),length(onsets));
+            for i = 1 : size(responses,1)
+                for j = 1 : length(onsets)
+                    resps(i,j) = max(...
+                        responses(i,onsets(j) : onsets(j)+duration-1));
+                end
+            end
+        end
     end
     
 end

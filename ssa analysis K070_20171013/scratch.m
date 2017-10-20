@@ -138,11 +138,12 @@ for s = 1 : 4
 end
 %%
 clf; hold on
-ph.prefs
-ph.pltsqz(dh.split_concat(seq_r_sp(62,:,:)),'LineWidth',2);
+ph.pltsqz(dh.split_concat(seq_r_sp(62,:,:)));
 ph.pltsqz(dh.split_concat(seq_r_in_3_4));
 ph.pltsqz(dh.split_concat(seq_r_in_4));
+ph.pltsqz(dh.split_concat(seq_r_in_1_2));
 legend({'spikes (neuron 62)','B...B','B...A'})
+ph.prefs
 %%
 clf; hold on
 ph.prefs
@@ -166,6 +167,111 @@ legend({'spikes (neuron 42)','B...B','B...A'})
 % ph.pltsqz(smooth(mean(r_sp(62,:,8*find(stimInfo.order==1)+7),3),10),'LineWidth',2);
 %%
 clf; hold on; ph.prefs;
-ph.pltsqz(smooth(mean(seq_r_sp(62,:,stimInfo.order==1),3),1),'LineWidth',2)
-ph.pltsqz(.1*seq_r_in(:,:,1),'LineWidth',2)
+ph.pltsqz(mean(seq_r_sp(62,:,stimInfo.order==1),3),'LineWidth',2);
+ph.pltsqz(.1*seq_r_in(:,:,1),'LineWidth',2);
+
+
+
+
+%%
+clf; hold on; ph.prefs;
+ph.pltsqz(smooth(mean(seq_r_sp(62,:,stimInfo.order==1),3),10),'LineWidth',2);
+ph.pltsqz(find(seq_r_in(:,:,1)),0*seq_r_in(:,seq_r_in(:,:,1)>0,1),...
+    'r*','LineWidth',2);
+xs = strfind(seq_r_in(:,:,1),[1 1 1 1 1]);
+fig = gca;
+for i = 1 : 8
+    plot([xs(i) xs(i)+0.0001],[0 fig.YLim(2)],'k--')
+end
+title('Spikes to Sequence AAAAAAAA (neuron 62)')
+
+%%
+clf; hold on;
+ph.pltsqz(smooth(mean(...
+    seq_r_sp(62,51-30:51+10+ceil(stim_dur+ici_dur),stimInfo.order==1)...
+    ,3),10));
+ph.pltsqz(smooth(mean(...
+    seq_r_sp(62,260-30:260+10+ceil(stim_dur+ici_dur),stimInfo.order==1)...
+    ,3),10));
+fig = gca;
+plot([31 31.0001],[0 fig.YLim(2)],'k--')
+legend({'first response','last response','stimulus onset'})
+title('Average SSA to Sequence AAAAAAAA (neuron 62)')
+annotation('textbox',[0.15 0.4 .3 .5],'String',...
+    ['SSA = peak_{first}/peak_{last} = ' num2str(ssa_avg_62)],...
+    'FontSize',16,'LineStyle','none','FitBoxToText','on');
+ph.prefs;
+%% just one instance neuron 62 - one-by-one
+for i = 1 : 80
+clf; hold on
+ph.pltsqz(smooth(seq_r_sp(62,:,i),5));
+xs = strfind(seq_r_in(:,:,i),[1 1 1 1 1]);
+fig = gca;
+for j = 1 : 8
+    plot([xs(j) xs(j)+0.0001],[0 fig.YLim(2)],'k--')
+end
+title(['seq ' num2str(i)])
+ph.prefs % 24 31 44 72 79
+pause
+end
+%% neuron 62 plot at seq 31
+clf; hold on
+ph.pltsqz(smooth(seq_r_sp(62,:,31),5));
+xs = strfind(seq_r_in(:,:,31),[1 1 1 1 1]);
+fig = gca;
+for j = 1 : 8
+    plot([xs(j) xs(j)+0.0001],[0 fig.YLim(2)],'k--')
+end
+ph.prefs
+%% neuron 62 ssa plot - seq 31 + raster of all other sequences
+clf; hold on
+n = 62; seq = 31;
+pad = 20;
+xs = strfind(seq_r_in(:,:,seq),[1 1 1 1 1]);
+pts1 = xs(1)-pad:xs(1)+dur+pad;
+pts8 = xs(end)-pad:xs(end)+dur+pad;
+ph.pltsqz(seq_r_sp(n,pts1,seq),'r');
+ph.pltsqz(seq_r_sp(n,pts8,seq),'b');
+plot([pad+1 pad+1.0001],[0 1],'k--')
+plot([pad+ceil(stim_dur)+1 pad+ceil(stim_dur)+1.0001],[0 1],'k--')
+plot([pad+ceil(stim_dur)+dur+1 pad+ceil(stim_dur)+dur+1.0001],[0 1],'k--')
+legend({'first','last (8^{th})'})
+axis([0 length(pts1) -.5 1])
+% all seq
+fr_1 = squeeze(seq_r_sp(1:50,pts1,seq));
+fr_2 = squeeze(seq_r_sp(1:50,pts8,seq));
+bound = -.25; step = bound/size(r_ca,1);
+plot([0 length(pts1)], [bound bound],'k--')
+imagesc(1:80,step:step:bound,fr_1,'AlphaData',~~fr_1);
+imagesc(1:80,step+bound:step:bound*2,fr_2,'AlphaData',~~fr_2);
+ph.prefs; colorbar; colormap(flipud(bone));
+
+%% ^^^^^^^^^^ MAKE THIS A FUNCTION
+
+%% calculate SSA for neuron 62, sequence 1
+seq_avg_62 = mean(seq_r_sp(62,:,stimInfo.order==1),3);
+seq_max_avg_62 = dh.max_in_windows(seq_avg_62, ceil(stim_dur+ici_dur),...
+    strfind(seq_r_in(:,:,1),[1 1 1 1 1]));
+ssa_avg_62 = seq_max_avg_62(1)/seq_max_avg_62(end);
+%% calculate all SSA
+% to stim 1
+seq_avg_stim1 = mean(seq_r_sp(:,:,stimInfo.order==1),3);
+seq_max_avg_stim1 = dh.max_in_windows(seq_avg_stim1, ceil(stim_dur+ici_dur),...
+    strfind(seq_r_in(:,:,1),[1 1 1 1 1]));
+ssa_stim1 = seq_max_avg_stim1(:,1) ./ seq_max_avg_stim1(:,end);
+% to stim 3
+seq_avg_stim3 = mean(seq_r_sp(:,:,stimInfo.order==1),3);
+seq_max_avg_stim3 = dh.max_in_windows(seq_avg_stim3, ceil(stim_dur+ici_dur),...
+    strfind(seq_r_in(:,:,1),[1 1 1 1 1]));
+ssa_stim3 = seq_max_avg_stim3(:,1) ./ seq_max_avg_stim3(:,end);
+%% plot
+subplot(2,1,1);
+hist(ssa_stim1, 30); ph.prefs;
+title('SSA for neurons firing to sequence AAAAAAAA')
+ylabel('# neurons');
+subplot(2,1,2);
+title('SSA for neurons firing to sequence BBBBBBBB')
+hist(ssa_stim3, 30); ph.prefs;
+xlabel('SSA'); ylabel('# neurons');
+
 

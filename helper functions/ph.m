@@ -13,6 +13,7 @@ classdef ph
              set(gca,'TickDir','out');
              set(gca,'FontSize',16);
              set(gca,'DefaultFigureWindowStyle','docked')
+             set(findall(gca, 'Type', 'Line'),'LineWidth',2);
          end
          
          function h = imgsqz(dat, varargin)

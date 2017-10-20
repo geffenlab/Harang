@@ -5,7 +5,7 @@ uniqStim = unique(stimInfo.order); % how many words
 stimDur = ceil((stimInfo.t_dur+stimInfo.ISI) * exptInfo.fr);
 
 %% basic rasterization
-raster = rasterize(spikes.raster, stimDur+4, events.eventsOn-4);
+raster = dh.rasterize(spikes.raster, stimDur+4, events.eventsOn-4);
 % epoch
 epoch_size_f = 100;
 epoch_onsets_f = epoch_size_f*(0:19)+1;
@@ -17,6 +17,10 @@ uT = get_unique_transitions(trans);
 [raster_trans, nT] = rasterize_by_trans(raster, trans, uT);
 % stimulus
 raster_stim = squeeze(mean(raster(:,5:end,:), 2));
+
+%%
+raster_stim_half = squeeze(mean(raster(:,5:10,:), 2)) - ...
+    squeeze(mean(raster(:,11:end,:), 2));
 
 %% rasterize by transitions & epoch
 epoch_size_s = 200;
@@ -162,13 +166,30 @@ plotprefs
 scatter3(score(:,1),score(:,2),score(:,3),32,1:size(score,1))
 colormap jet; colorbar
 box on; axis([-1 1 -1 1 -1 1]); axis vis3d
-plotprefs; hold on
+ph.prefs; hold on
 for i = 1 : 3
     s = find(stimInfo.order==i);
     scatter3(score(s,1),score(s,2),score(s,3),'.');
 end
 hold off
 legend({'time-sorted','ones','twos','threes'})
+
+%% view pca with time and stimulus detrend
+rs=raster_stim_half-mean(raster_stim_half,2)*ones(1,2000);
+smooth_stim=rs-conv2(rs,ones(1,100)/100,'same');
+[~, score, ~] = pca(smooth_stim');
+% scatter3(score(:,2),score(:,3),score(:,4),32,1:size(score,1))
+colormap jet; colorbar
+box on; axis([-1 1 -1 1 -1 1]); axis vis3d
+ph.prefs; hold on
+for i = 1 : 3
+    s = find(stimInfo.order==i);
+    scatter3(score(s,2),score(s,3),score(s,4),'.','Color');
+end
+hold off
+legend({'time-sorted','ones','twos','threes'})
+
+
 %% view pca, chunk of time and color by stimulus
 range = 1:100;
 [coeff, score, latent] = pca(raster_stim(:,range)');
@@ -178,7 +199,7 @@ for i = 1 : 3
     hold on
 end
 hold off; legend({'ones','twos','three'})
-plotprefs; box on;
+ph.prefs; box on;
 axis([-1 1 -1 1 -1 1]); axis vis3d
 xlabel('dim1'); ylabel('dim2'); zlabel('dim3')
 
