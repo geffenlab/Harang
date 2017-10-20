@@ -236,14 +236,14 @@ plot([pad+1 pad+1.0001],[0 1],'k--')
 plot([pad+ceil(stim_dur)+1 pad+ceil(stim_dur)+1.0001],[0 1],'k--')
 plot([pad+ceil(stim_dur)+dur+1 pad+ceil(stim_dur)+dur+1.0001],[0 1],'k--')
 legend({'first','last (8^{th})'})
-axis([0 length(pts1) -.5 1])
+axis([0 length(pts1) -1 1])
 % all seq
-fr_1 = squeeze(seq_r_sp(1:50,pts1,seq));
-fr_2 = squeeze(seq_r_sp(1:50,pts8,seq));
-bound = -.25; step = bound/size(r_ca,1);
+fr_1 = squeeze(seq_r_sp(n,pts1,seq));
+fr_2 = squeeze(seq_r_sp(n,pts8,seq));
+bound = -.5; step = bound;%/size(r_ca,1);
 plot([0 length(pts1)], [bound bound],'k--')
-imagesc(1:80,step:step:bound,fr_1,'AlphaData',~~fr_1);
-imagesc(1:80,step+bound:step:bound*2,fr_2,'AlphaData',~~fr_2);
+imagesc(1:length(pts1),step:step:bound,fr_1,'AlphaData',~~fr_1);
+imagesc(1:length(pts1),step+bound:step:bound*2,fr_2,'AlphaData',~~fr_2);
 ph.prefs; colorbar; colormap(flipud(bone));
 
 %% ^^^^^^^^^^ MAKE THIS A FUNCTION
