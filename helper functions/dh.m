@@ -72,16 +72,16 @@ classdef dh
         %% delta F over F0 calculations
         % Jia et al. Nat Protocols. 2011; 6:28-35.
         
-        function df = deltaf_f0(f, f0_wind, wind_fun, varargin)
-            % calculate delta F / F0
-            % f calcium trace F, neurons X time
-            % f0_wind window for f0, neurons X 2,   [[w1_on w1_off];
-            %                                        [w2_on w2_off];...
-            % wind_fun function to run over window
-            % varargin for window function
-            f0 = wind_fun(f, [f0_wind(:,1) f0_wind(:,2)], varargin{:});
-            df = (f - f0) ./ f0;
-        end
+%         function df = deltaf_f0(f, f0_wind, wind_fun, varargin)
+%             % calculate delta F / F0
+%             % f calcium trace F, neurons X time
+%             % f0_wind window for f0, neurons X 2,   [[w1_on w1_off];
+%             %                                        [w2_on w2_off];...
+%             % wind_fun function to run over window
+%             % varargin for window function
+%             f0 = wind_fun(f, [f0_wind(:,1) f0_wind(:,2)], varargin{:});
+%             df = (f - f0) ./ f0;
+%         end
         
         %% calculate windows
         
@@ -104,37 +104,37 @@ classdef dh
         
         %% window functions
         
-        %         function f0 = f0_mean(f, window)
-        %             rep_size = [1 size(f,2)];
-        %             f0 = repmat(mean(f(:,window), 2), rep_size);
-        %         end
-        %
-        %         function f0 = f0_mode(f, window)
-        %             rep_size = [1 size(f,2)];
-        %             f0 = repmat(mode(f(:,window), 2), rep_size);
-        %         end
-        %
-        %         function f0 = f0_min_moving_avg(f, window, span)
-        %             % minimum of moving-averaged values
-        %             % span optional (default: 22; ~0.75s for 30fps)
-        %             if nargin < 3
-        %                 span = 22;
-        %             end
-        %             n_neuron = size(f,1);
-        %             f0 = zeros(n_neuron, 1);
-        %             for i = 1 : n_neuron
-        %                 f0(i) = min(smooth(f(i, window), span));
-        %             end
-        %         end
-        %
-        %         function f0 = f0_min_boxcar_mean(f, window, span)
-        %             % minimum of moving-averaged values
-        %             % span optional (default: 22)
-        %             if nargin < 3
-        %                 span = 22;
-        %             end
-        %             f0 = min(movmean(f(:,window), span, 2),[],2);
-        %         end
+%         function f0 = f0_mean(f, window)
+%             rep_size = [1 size(f,2)];
+%             f0 = repmat(mean(f(:,window), 2), rep_size);
+%         end
+%
+%         function f0 = f0_mode(f, window)
+%             rep_size = [1 size(f,2)];
+%             f0 = repmat(mode(f(:,window), 2), rep_size);
+%         end
+%
+%         function f0 = f0_min_moving_avg(f, window, span)
+%             % minimum of moving-averaged values
+%             % span optional (default: 22; ~0.75s for 30fps)
+%             if nargin < 3
+%                 span = 22;
+%             end
+%             n_neuron = size(f,1);
+%             f0 = zeros(n_neuron, 1);
+%             for i = 1 : n_neuron
+%                 f0(i) = min(smooth(f(i, window), span));
+%             end
+%         end
+%
+%         function f0 = f0_min_boxcar_mean(f, window, span)
+%             % minimum of moving-averaged values
+%             % span optional (default: 22)
+%             if nargin < 3
+%                 span = 22;
+%             end
+%             f0 = min(movmean(f(:,window), span, 2),[],2);
+%         end
         
         function f0 = f0_min_movmean(f, samp_wind, f0_wind, span)
             % from Jia et al.
@@ -151,9 +151,9 @@ classdef dh
                 f0_w(:,i) = min(movmean(f(:,w),span,2),[],2);
             end
             f0 = f;
-            for i = 1 : size(samp_wind,1)
+            for i = 1 : size(f0_wind,1)
                 w = f0_wind(i,:);
-                f0(:,w) = repmat(f0_w(:,i), []);
+                f0(:,w) = repmat(f0_w(:,i), [1 length(w)]);
             end
         end
         
