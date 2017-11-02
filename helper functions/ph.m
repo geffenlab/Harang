@@ -24,6 +24,17 @@ classdef ph
              h = plot(squeeze(dat), varargin{:});
          end
          
+         function plot_ca_img(spatialInfo, activity)
+             % activity tranlucency values, 0<=x<=1
+             imagesc(spatialInfo.im)
+             axis square
+             for i = 1 : length(spatialInfo.ipix)
+                 roi = spatialInfo.ROIs{i};
+                 patch(roi(:,2),roi(:,1),'g','FaceAlpha',activity(i),...
+                     'LineStyle','none');
+             end
+         end
+         
      end
 
 end

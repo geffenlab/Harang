@@ -4,6 +4,7 @@ load('F:/HarangData/K070_20171013_SSA_03.mat')
 %%
 stim_dur = stimInfo.tDur*1e-3*exptInfo.fr;
 ici_dur = stimInfo.ICI*1e-3*exptInfo.fr;
+
 dur = ceil(stim_dur+ici_dur);
 %%
 stim = zeros(1,size(spikes.raster,2));
@@ -107,7 +108,7 @@ for n = 1 : length(n_hi_var)
     clf; hold on;
     hs = zeros(1,5);
     for s = 1 : 4
-        data = seq_r_ca(n_hi_var(n),:,stimInfo.order==s);
+        data = seq_r_sp(n_hi_var(n),:,stimInfo.order==s);
 %         data = seq_r_ca(n,:,stimInfo.order==s);
         y = smooth(mean(data,3),5)';
         std_y = std(data,0,3)/sqrt(length(y));
@@ -307,8 +308,48 @@ ph.prefs; hold off
 % imagesc(1:length(pts1),step:step:bound,fr_1,'AlphaData',~~fr_1);
 % imagesc(1:length(pts1),step+bound:step:bound*2,fr_2,'AlphaData',~~fr_2);
 % ph.prefs; colorbar; colormap(flipud(bone));
-
 %% ^^^^^^^^^^ MAKE THIS A FUNCTION
+
+
+%% NSF figures
+%% neuron 62 plot, seq AAAAAAAA
+n = 62; seq = 31; clf
+pts = 45:350;
+ph.pltsqz(smooth(mean(seq_r_sp(n,pts,stimInfo.order==stim),3),10),'b',...
+    'LineWidth',2);
+hold on
+ph.pltsqz(find(seq_r_in(:,pts,stim)),...
+    0*seq_r_in(:,seq_r_in(:,pts,stim)>0,stim),...
+    'r*','LineWidth',2);
+xs = strfind(seq_r_in(:,pts,stim),[1 1 1 1 1]);
+fig = gca;
+for i = 1 : 8
+    plot([xs(i) xs(i)+0.0001],[0 fig.YLim(2)],'k--')
+end
+xlabel('time'); ylabel('average spike')
+ax = gca;
+ph.prefs; hold off
+%% 
+clf
+activity = mean(mean(seq_r_sp(:,:,stimInfo.order==stim),3),2);
+activity = activity / max(activity);
+ph.plot_ca_img(spatialInfo,activity)
+n62_patch = spatialInfo.ROIs{62};
+ax = gca;
+ax.XTick = []; ax.XTickLabel = {};
+ax.YTick = []; ax.YTickLabel = {};
+patch(n62_patch(:,1),n62_patch(:,2),'b','LineStyle','none')
+
+%%
+pts = 1:size(seq_r_in,2);
+for i = 1 : length(pts)
+    activity = seq_r_sp(:,i,31);
+    activity = smooth(activity,10);
+    activity = activity/max(activity);
+    ph.plot_ca_img(spatialInfo,activity)
+    title(['t=' num2str(i)])
+    pause(0.01)
+end
 
 %% plot
 subplot(2,1,1);
