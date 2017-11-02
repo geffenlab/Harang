@@ -1,10 +1,12 @@
 classdef dh
-    %DataHelper useful functions 
+    %DataHelper useful functions
     
     properties
     end
     
     methods (Static)
+        
+        %% rasterizing
         
         function raster = rasterize(data, dur, onsets)
             %Rasterize creates a raster from data
@@ -45,14 +47,14 @@ classdef dh
         end
         
         function new_dat = split_concat(dat)
-             % opposite of rasterize
-             n = size(dat,3);
-             new_dat = zeros(size(dat,1),n*size(dat,2));
-             for i = 1 : n
-                 on = (i-1)*size(dat,2)+1;
-                 off = on+size(dat,2)-1;
-                 new_dat(:,on:off) = dat(:,:,i);
-             end
+            % opposite of rasterize
+            n = size(dat,3);
+            new_dat = zeros(size(dat,1),n*size(dat,2));
+            for i = 1 : n
+                on = (i-1)*size(dat,2)+1;
+                off = on+size(dat,2)-1;
+                new_dat(:,on:off) = dat(:,:,i);
+            end
         end
         
         function resps = max_in_windows( responses, duration, onsets )
@@ -86,48 +88,73 @@ classdef dh
         function w = window_pretrial(onsets, len)
             % onsets: length(onsets) X 1; onset of trial
             % len: length of window
-            % w: index of windows
+            % w: index of windows; length(onsets) X len
             w = repelem(onsets, 1, len);
             w = w + repmat(-1*len:-1,[length(onsets) 1]);
         end
         
+        function w = window_paratrial(onsets,...
+                pre_len, in_len, post_len)
+            % onsets: length(onsets) X 1; onset of trial
+            % pre_ in_ post_len: length of window rel. to trial
+            len = pre_len + in_len + post_len;
+            w = repelem(onsets-pre_len+1, 1, len);
+            w = w + repmat(0:len-1,[length(onsets) 1]);
+        end
+        
         %% window functions
         
-        function f0 = f0_mean(f, window)
-            rep_size = [1 size(f,2)];
-            f0 = repmat(mean(f(:,window), 2), rep_size);
-        end
+        %         function f0 = f0_mean(f, window)
+        %             rep_size = [1 size(f,2)];
+        %             f0 = repmat(mean(f(:,window), 2), rep_size);
+        %         end
+        %
+        %         function f0 = f0_mode(f, window)
+        %             rep_size = [1 size(f,2)];
+        %             f0 = repmat(mode(f(:,window), 2), rep_size);
+        %         end
+        %
+        %         function f0 = f0_min_moving_avg(f, window, span)
+        %             % minimum of moving-averaged values
+        %             % span optional (default: 22; ~0.75s for 30fps)
+        %             if nargin < 3
+        %                 span = 22;
+        %             end
+        %             n_neuron = size(f,1);
+        %             f0 = zeros(n_neuron, 1);
+        %             for i = 1 : n_neuron
+        %                 f0(i) = min(smooth(f(i, window), span));
+        %             end
+        %         end
+        %
+        %         function f0 = f0_min_boxcar_mean(f, window, span)
+        %             % minimum of moving-averaged values
+        %             % span optional (default: 22)
+        %             if nargin < 3
+        %                 span = 22;
+        %             end
+        %             f0 = min(movmean(f(:,window), span, 2),[],2);
+        %         end
         
-        function f0 = f0_mode(f, window)
-            rep_size = [1 size(f,2)];
-            f0 = repmat(mode(f(:,window), 2), rep_size);
-        end
-        
-        function f0 = f0_min_moving_avg(f, window, span)
-            % minimum of moving-averaged values
-            % span optional (default: 22; ~0.75s for 30fps)
-            if nargin < 3
-                span = 22;
-            end
-            n_neuron = size(f,1);
-            f0 = zeros(n_neuron, 1);
-            for i = 1 : n_neuron
-                f0(i) = min(smooth(f(i, window), span));
-            end
-        end
-        
-        function f0 = f0_min_boxcar_mean(f, window, span)
-            % minimum of moving-averaged values
-            % span optional (default: 22)
-            if nargin < 3
-                span = 22;
-            end
-            f0 = min(movmean(f(:,window), span, 2),[],2);
-        end
-        
-        function f0 = f0_min_smooth(f, window, span)
+        function f0 = f0_min_movmean(f, samp_wind, f0_wind, span)
             % from Jia et al.
-            
+            % samp_wind: sampling window
+            % f0_wind: window to apply to f0
+            % span optional (default: 22 pts; .75s for 30fps)
+            % f0 = size(f,1) X size(window,2)
+            if nargin < 4
+                span = 22;
+            end
+            f0_w = zeros(size(f,1), size(samp_wind,1));
+            for i = 1 : size(samp_wind,1)
+                w = samp_wind(i,:);
+                f0_w(:,i) = min(movmean(f(:,w),span,2),[],2);
+            end
+            f0 = f;
+            for i = 1 : size(samp_wind,1)
+                w = f0_wind(i,:);
+                f0(:,w) = repmat(f0_w(:,i), []);
+            end
         end
         
         %% math
