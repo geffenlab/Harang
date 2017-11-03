@@ -97,37 +97,17 @@ classdef dh
         
         %% window functions
         
-%         function f0 = f0_mean(f, window)
-%             rep_size = [1 size(f,2)];
-%             f0 = repmat(mean(f(:,window), 2), rep_size);
-%         end
-%
-%         function f0 = f0_mode(f, window)
-%             rep_size = [1 size(f,2)];
-%             f0 = repmat(mode(f(:,window), 2), rep_size);
-%         end
-%
-%         function f0 = f0_min_moving_avg(f, window, span)
-%             % minimum of moving-averaged values
-%             % span optional (default: 22; ~0.75s for 30fps)
-%             if nargin < 3
-%                 span = 22;
-%             end
-%             n_neuron = size(f,1);
-%             f0 = zeros(n_neuron, 1);
-%             for i = 1 : n_neuron
-%                 f0(i) = min(smooth(f(i, window), span));
-%             end
-%         end
-%
-%         function f0 = f0_min_boxcar_mean(f, window, span)
-%             % minimum of moving-averaged values
-%             % span optional (default: 22)
-%             if nargin < 3
-%                 span = 22;
-%             end
-%             f0 = min(movmean(f(:,window), span, 2),[],2);
-%         end
+        function f0_val = f0_mean(f, samp_wind)
+            % calculate mean in sampling windows
+            % f0_val: f0 values in the sampling windows for neurons
+            % 	size(f,1) X size(window,2)
+            % samp_wind: sampling window; number X window values
+            f0_val = zeros(size(f,1), size(samp_wind,1));
+            for i = 1 : size(samp_wind,1)
+                w = samp_wind(i,:);
+                f0_val(:,i) = mean(f(:,w),2);
+            end
+        end
         
         function f0_val = f0_min_movmean(f, samp_wind, span)
             % calculate min of sliding mean in sampling windows
