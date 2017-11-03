@@ -2,22 +2,30 @@
 %%
 load('F:HarangData/K070_20171027_artificialGrammar_03.mat')
 
-%% 
-% delta F / F0 per trial
+%%
 f = calcium.npilSubTraces;
 len_trial = ceil(stimInfo.t_dur * exptInfo.fr);
-len_pretrial = floor(stimInfo.ISI * exptInfo.fr/2);
-len_posttrial = len_pretrial;
-window_sampling = dh.window_pretrial(events.eventsOn, len_pretrial);
-window_f0 = dh.window_paratrial(events.eventsOn, len_pretrial, ...
-    len_trial, len_posttrial);
-f0 = dh.f0_min_movmean(f, window_sampling, window_f0);
+onsets = events.eventsOn;
+
+%% 
+% delta F / F0 per trial
+len_pre = floor(stimInfo.ISI * exptInfo.fr/2);
+len_post = len_pre;
+window_samp = dh.window_pretrial(onsets, len_pre);
+f0_vals = dh.f0_min_movmean(f, window_samp);
+window_f0 = dh.window_paratrial(onsets, len_pre, len_trial, len_post);
+f0 = dh.f0_apply(f, f0_vals, window_f0);
 dff0 = (f - f0) ./ f0;
 dff0_sm = dh.denoise(dff0);
 
 %% 
 % delta F / F0 for all trials
-
+window_samp = dh.window_pretrial(onsets(1), onsets(1)-1);
+f0_vals = dh.f0_min_movmean(f, window_samp);
+window_f0 = dh.window_paratrial(onsets, len_pre, len_trial, len_post);
+f0 = dh.f0_apply(f, f0_vals, window_f0);
+dff0 = (f - f0) ./ f0;
+dff0_sm = dh.denoise(dff0);
 
 %%
 clf; hold on

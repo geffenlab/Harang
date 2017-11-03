@@ -70,22 +70,11 @@ classdef dh
         end
         
         %% delta F over F0 calculations
-        % Jia et al. Nat Protocols. 2011; 6:28-35.
-        
-%         function df = deltaf_f0(f, f0_wind, wind_fun, varargin)
-%             % calculate delta F / F0
-%             % f calcium trace F, neurons X time
-%             % f0_wind window for f0, neurons X 2,   [[w1_on w1_off];
-%             %                                        [w2_on w2_off];...
-%             % wind_fun function to run over window
-%             % varargin for window function
-%             f0 = wind_fun(f, [f0_wind(:,1) f0_wind(:,2)], varargin{:});
-%             df = (f - f0) ./ f0;
-%         end
         
         %% calculate windows
         
         function w = window_pretrial(onsets, len)
+            % calculate windows before onset of trials
             % onsets: length(onsets) X 1; onset of trial
             % len: length of window
             % w: index of windows; length(onsets) X len
@@ -95,7 +84,11 @@ classdef dh
         
         function w = window_paratrial(onsets,...
                 pre_len, in_len, post_len)
-            % onsets: length(onsets) X 1; onset of trial
+            % calcualte windows around onset of trials
+            % w: indices for windows
+            %   num windows X 
+            % onsets: onset of trial
+            %   length(onsets) X 1
             % pre_ in_ post_len: length of window rel. to trial
             len = pre_len + in_len + post_len;
             w = repelem(onsets-pre_len+1, 1, len);
@@ -136,24 +129,43 @@ classdef dh
 %             f0 = min(movmean(f(:,window), span, 2),[],2);
 %         end
         
-        function f0 = f0_min_movmean(f, samp_wind, f0_wind, span)
-            % from Jia et al.
-            % samp_wind: sampling window
-            % f0_wind: window to apply to f0
+        function f0_val = f0_min_movmean(f, samp_wind, span)
+            % calculate min of sliding mean in sampling windows
+            % f0_val: f0 values in the sampling windows for neurons
+            % 	size(f,1) X size(window,2)
+            % samp_wind: sampling window; number X window values
             % span optional (default: 22 pts; .75s for 30fps)
-            % f0 = size(f,1) X size(window,2)
-            if nargin < 4
+            % from Jia et al. Nat Protocols. 2011; 6:28-35.
+            if nargin < 3
                 span = 22;
             end
-            f0_w = zeros(size(f,1), size(samp_wind,1));
+            f0_val = zeros(size(f,1), size(samp_wind,1));
             for i = 1 : size(samp_wind,1)
                 w = samp_wind(i,:);
-                f0_w(:,i) = min(movmean(f(:,w),span,2),[],2);
+                f0_val(:,i) = min(movmean(f(:,w),span,2),[],2);
             end
+        end
+        
+        function f0 = f0_apply(f, f0_val, wind)
+            % apply values of f0_val to windows in f
+            % f0: f0 values of size(f)
+            %   f0 values outside of window (w) = f_ij
+            % f: calcium trace, num neurons X time
+            % f0_val: f0 values from sampled windows to 
+            %   apply to the window in f, num neurons X num sampled windows
+            % wind: windows to apply f0 values
+            % can have 1 sampled window and apply to many windows on f0
             f0 = f;
-            for i = 1 : size(f0_wind,1)
-                w = f0_wind(i,:);
-                f0(:,w) = repmat(f0_w(:,i), [1 length(w)]);
+            n_wind = size(wind,1);
+            n_f0_val = size(f0_val,2);
+            for i = 1 : n_wind
+                if n_f0_val == 1
+                    val = f0_val;
+                else
+                    val = f0_val(:,i);
+                end
+                w = wind(i,:);
+                f0(:,w) = repmat(val, [1 length(w)]);
             end
         end
         
