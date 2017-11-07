@@ -7,13 +7,13 @@ classdef ph
 
      methods (Static)
          
-         function prefs
+         function prefs()
              box off
              set(gca,'LineWidth',2);
              set(gca,'TickDir','out');
              set(gca,'FontSize',16);
              set(gca,'DefaultFigureWindowStyle','docked')
-             set(findall(gca, 'Type', 'Line'),'LineWidth',2);
+%              set(findall(gca, 'Type', 'Line'),'LineWidth',2);
          end
          
          function h = imgsqz(dat, varargin)
@@ -33,6 +33,15 @@ classdef ph
                  patch(roi(:,2),roi(:,1),'g','FaceAlpha',activity(i),...
                      'LineStyle','none');
              end
+         end
+         
+         function error_shade(x, y, e, c, varargin)
+             alpha = 0.2;
+             plot(x,y,c,varargin{:})
+             hold on
+             patch([x flip(x)], [y-e flip(y)+e],c,'FaceColor',c,...
+                 'FaceAlpha',alpha,'LineStyle','none')
+             hold off
          end
          
      end
