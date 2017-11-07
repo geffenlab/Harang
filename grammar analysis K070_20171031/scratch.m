@@ -135,6 +135,10 @@ for s = 1 : length(stimInfo.words)
     ni = 1:n_neur;%n_corr{s};
     si = stimInfo.order==s;
     subplot(2,2,s)
+%     x = linspace(0,dur_s,dur);
+%     y = mean(f_ras(ni, :, si), 3);
+%     se = std(f_ras(ni, :, si), 0, 3) / length(si);
+%     ph.error_shade(x,y,se,'b')
     ph.pltsqz(linspace(0,dur_s,dur), mean(f_ras(ni, :, si), 3)');
     title(['word ' num2str(s) ' (n=' num2str(length(ni)) ')'])
     ph.prefs
