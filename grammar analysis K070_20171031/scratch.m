@@ -1,6 +1,6 @@
 
 %%
-load('F:/HarangData/K070_20171027_artificialGrammar_03.mat')
+load('E:/HarangData/K070_20171027_artificialGrammar_03.mat')
 
 %% plot stimulus
 clf; hold on

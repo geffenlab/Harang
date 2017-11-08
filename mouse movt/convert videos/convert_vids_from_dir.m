@@ -10,8 +10,9 @@ for i = 1 : length(dirs)
     if d(1) == '.'
         continue
     end
-    if exist(d,'file')
-        disp(['File ' d ' already exists. Skipping video conversion.'])
+    dest_d = [to_dir d(1:end-4) '.mp4'];
+    if exist(dest_d,'file')
+        disp(['File ' dest_d ' already exists. Skipping video conversion.'])
         continue
     end
     disp(['Converting file ' d '.'])
