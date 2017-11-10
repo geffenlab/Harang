@@ -15,7 +15,7 @@ for i = 1 : length(dirs)
         continue
     end
     disp(['Analyzing file ' d '...'])
-    fm = calc_mvmt([mp3_dir d]);
+    fm = calc_mvmt([vid_dir d]);
     save(mot_file, 'fm')
     toc
 end
