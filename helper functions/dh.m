@@ -71,32 +71,19 @@ classdef dh
         
         %% delta F over F0 calculations
         
-        %% calculate windows
-        
-        function w = window_pretrial(onsets, len)
-            % calculate windows before onset of trials
-            % onsets: length(onsets) X 1; onset of trial
-            % len: length of window
-            % w: index of windows; length(onsets) X len
-            w = repelem(onsets, 1, len);
-            w = w + repmat(-1*len:-1,[length(onsets) 1]);
-        end
-        
-        function w = window_paratrial(onsets,...
-                pre_len, in_len, post_len)
-            % calcualte windows around onset of trials
-            % w: indices for windows
-            %   num windows X 
-            % onsets: onset of trial
-            %   length(onsets) X 1
-            % pre_ in_ post_len: length of window rel. to trial
-            len = pre_len + in_len + post_len;
-            w = repelem(onsets-pre_len+1, 1, len);
-            w = w + repmat(0:len-1,[length(onsets) 1]);
-        end
-        
         %% window functions
         
+        function w = make_windows(onsets, len)
+            % calcualte windows around onset of trials
+            % w: indices for windows
+            %   num windows X len
+            % onsets: onset of trial
+            %   length(onsets) X 1
+            % len: length of window
+            w = repelem(onsets, 1, len);
+            w = w + repmat(0:len-1,[length(onsets) 1]);
+        end
+                
         function f0_val = f0_mean(f, samp_wind)
             % calculate mean in sampling windows
             % f0_val: f0 values in the sampling windows for neurons
@@ -168,6 +155,42 @@ classdef dh
             for i = 1 : n_neuron
                 y(i,:) = smooth(x(i,:), span, smooth_fun);
             end
+        end
+        
+        function [y, idx] = movmax(x, span, step)
+            % movmax finds the max along a moving window with span
+            % span default == 10
+            % step default == 10
+            % y: max value
+            %   size(x,1) X size(x,2)/step
+            % idx: index of max value in x
+            %   size(x,1) X size(x,2)/step
+            switch nargin
+                case 1
+                    span = 10;
+                    step = 10;
+                case 2
+                    step = 10;
+            end
+            y = zeros(size(x,1),size(x,2)/step);
+            idx = zeros(size(x,1),size(x,2)/step);
+            for i = 1 : step : length(x)
+                range = i : i + span - 1;
+                if range(end) > length(x)
+                    range = i : length(x);
+                end
+                ys = 1 + (i-1)/step;
+                [m, mi] = max(x(:,range), [], 2);
+                y(:,ys) = repmat(m, [1 length(ys)]);
+                idx(:,ys) = mi + i - 1;
+            end
+        end
+        
+        function vq = change_frame_rate(v, fr0, fr)
+            dur0 = size(v,2) / fr0;
+            x = 1/fr0:1/fr0:dur0;
+            xq = 1/fr0:1/fr:dur0;
+            vq = interp1(x,v,xq);
         end
         
     end
