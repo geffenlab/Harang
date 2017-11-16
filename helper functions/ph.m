@@ -38,10 +38,13 @@ classdef ph
          function error_shade(x, y, e, c, varargin)
              alpha = 0.2;
              plot(x,y,c,varargin{:})
+             held = ishold;
              hold on
              patch([x flip(x)], [y-e flip(y+e)],c,'FaceColor',c,...
                  'FaceAlpha',alpha,'LineStyle','none')
-             hold off
+             if ~held
+                 hold off
+             end
          end
          
      end
