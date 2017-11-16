@@ -39,7 +39,7 @@ classdef ph
              alpha = 0.2;
              plot(x,y,c,varargin{:})
              hold on
-             patch([x flip(x)], [y-e flip(y)+e],c,'FaceColor',c,...
+             patch([x flip(x)], [y-e flip(y+e)],c,'FaceColor',c,...
                  'FaceAlpha',alpha,'LineStyle','none')
              hold off
          end
