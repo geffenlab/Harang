@@ -1,5 +1,5 @@
 %%
-load('E:/HarangData/K070_20171013_SSA_03.mat')
+load('F:/HarangData/K070_20171013_SSA_03.mat')
 %% plot stimulus
 clf; hold on
 plot(1,stimInfo.chordFreqs(:,1)/1e3,'ok')
@@ -49,30 +49,10 @@ f_ras_seq = dh.rasterize(dff0_sm, dur_tot,...
     onsets(1:stim_per_seq:length(order)) - dur_seq_pre);
 % f_ras_seq = dh.rasterize(dff0_sm, dur_seq, onsets(1:stim_per_seq:length(order)));
 %%
-n = 62;
-for i = 1 : length(stimInfo.order)
-    clf; hold on
-    ph.pltsqz(...
-        linspace(-1*dur_seq_pre/exptInfo.fr,...
-        dur_tot/exptInfo.fr, dur_tot),...
-        f_ras_seq(n,:,i));
-    %     axis([-1*dur_seq_pre/exptInfo.fr ...
-    %         (dur_seq+dur_seq_post)/exptInfo.fr -2 4])
-    axis([-inf inf -2 4])
-    %     ph.pltsqz(linspace(0,dur_seq/exptInfo.fr, dur_seq), f_ras_seq(n,:,i));
-    %     axis([-1 dur_seq/exptInfo.fr -2 4])
-    ax = gca;
-    for j = 1 : stim_per_seq
-        idx = j-1;
-        plot([idx idx+1e-3], [ax.YLim(1) ax.YLim(2)], '--k')
-    end
-    title(['@' num2str(i) ' stim ' num2str(stimInfo.order(i))])
-    ph.prefs; hold off
-    waitforbuttonpress
-end
-clear n i ax j idx
-%%
-for n = 1 : size(f,1)
+ns = [29 32 37 40 46 51 52 54 62 64 66 77 82 84 94 105 114 116 123 125 ...
+    128 134 140 143 149 152 161 162 168 178 186 190 207 225 242 256 260 ...
+    266 274];
+for n = ns %1 : size(f,1)
     clf; hold on
     for s = 1 : length(stimInfo.index)
         x = linspace(-1*dur_seq_pre/exptInfo.fr, dur_tot/exptInfo.fr,...
@@ -80,21 +60,81 @@ for n = 1 : size(f,1)
         y_ = f_ras_seq(n,:,stimInfo.order==s);
         y = squeeze(mean(y_,3));
         e = squeeze(std(y_,0,3)/sqrt(size(y_,3)));
-%         plot(x,y,'LineWidth', 2);
-        ph.error_shade(x,y,e,'r');
+        switch s
+            case 1; c = 'r';
+            case 2; c = 'b';
+            case 3; c = 'g';
+            case 4; c = 'c';
+            otherwise; c = 'k';
+        end
+        ph.error_shade(x,y,e,c,'LineWidth',2);
     end
-    axis([-inf inf -2 2])
+    xlabel('time (s)'); ylabel('\DeltaF/F0')
+    axis([-inf inf -1 1.5])
     ax = gca;
     for j = 1 : stim_per_seq
         idx = j-1;
         plot([idx idx+1e-3], [ax.YLim(1) ax.YLim(2)], '--k')
     end
-    legend({'1','2','3','4'})
+%     legend({'1','2','3','4'})
     title(['n=' num2str(n)])
     ph.prefs; hold off
+%     filename = ['dff0 n' num2str(n)];
+%     savefig(filename);
+%     print(filename, '-dpng');
     waitforbuttonpress
 end
-clear n s ax idx
+clear ns n s x y_ y e c ax j idx
+
+%% neuron 37 response
+n = 37;
+clf; hold on
+for s = 1 : length(stimInfo.index)
+    x = linspace(-1*dur_seq_pre/exptInfo.fr, dur_tot/exptInfo.fr,...
+        dur_tot);
+    y_ = f_ras_seq(n,:,stimInfo.order==s);
+    y = squeeze(mean(y_,3));
+    e = squeeze(std(y_,0,3)/sqrt(size(y_,3)));
+    switch s
+        case 1; c = 'r';
+        case 2; c = 'b';
+        case 3; c = 'g';
+        case 4; c = 'c';
+        otherwise; c = 'k';
+    end
+    ph.error_shade(x,y,e,c,'LineWidth',2);
+end
+xlabel('time (s)'); ylabel('\DeltaF/F0')
+axis([-inf inf -1 1.5])
+ax = gca;
+for j = 1 : stim_per_seq
+    idx = j-1;
+    plot([idx idx+1e-3], [ax.YLim(1) ax.YLim(2)], '--k')
+end
+ph.prefs
+clear n x y_ y e s c ax j idx
+
+%% glm
+% logistic
+n = 37;
+s = 1;
+% generate data
+x = linspace(-1*dur_seq_pre/exptInfo.fr, dur_tot/exptInfo.fr,...
+    dur_tot);
+y_ = f_ras_seq(n,:,stimInfo.order==s);
+y = squeeze(mean(y_,3));
+% plot
+clf; hold on
+idx = dur_seq_pre + 1 : dur_seq_pre + dur;
+plot(x(idx), y(idx), '.')
+ph.prefs
+% glm fit
+b = glmfit(x(idx), [y(idx)], 'binomial', 'logit');
+v = glmval(b, x(idx), 'logit');
+% plot fit
+plot(x, v, 'r-')
+
+clear n s x y_ y idx b v
 
 %% saved
 

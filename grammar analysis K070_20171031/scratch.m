@@ -1,6 +1,6 @@
 
 %%
-load('E:/HarangData/K070_20171027_artificialGrammar_03.mat')
+load('data/K070_20171027_artificialGrammar_03.mat')
 
 %% plot stimulus
 clf; hold on
@@ -37,17 +37,17 @@ dur = ceil((stimInfo.ISI + stimInfo.t_dur) * exptInfo.fr);
 % delta F / F0 per trial
 len_pre = floor(stimInfo.ISI * exptInfo.fr/2);
 len_post = len_pre;
-window_samp = dh.window_pretrial(onsets, len_pre);
+window_samp = dh.make_windows(onsets-len_pre, len_pre);
 f0_vals = dh.f0_min_movmean(f, window_samp);
-window_f0 = dh.window_paratrial(onsets, len_pre, len_trial, len_post);
+window_f0 = dh.make_windows(onsets-len_pre, len_pre + len_trial + len_post);
 f0 = dh.f0_apply(f, f0_vals, window_f0);
 dff0 = (f - f0) ./ f0;
 dff0_sm = dh.denoise(dff0);
 %% 
 % delta F / F0 for all trials
-window_samp = dh.window_pretrial(onsets(1), onsets(1)-1);
+window_samp = dh.make_windows(onsets(1), onsets(1)-1);
 f0_vals = dh.f0_min_movmean(f, window_samp);
-window_f0 = dh.window_paratrial(onsets, len_pre, len_trial, len_post);
+window_f0 = dh.make_windows(onsets-len_pre, len_pre + len_trial + len_post);
 f0 = dh.f0_apply(f, f0_vals, window_f0);
 dff0 = (f - f0) ./ f0;
 dff0_sm = dh.denoise(dff0);
@@ -55,15 +55,20 @@ dff0_sm = dh.denoise(dff0);
 % delta F / F0 mean of past S seconds
 samp_dur = 19.9; % sec
 len_samp = floor(samp_dur * exptInfo.fr);
-window_samp = dh.window_pretrial(onsets, len_samp);
-% f0_vals = dh.f0_min_movmean(f, window_samp);
+window_samp = dh.make_windows(onsets-len_samp, len_samp);
 f0_vals = dh.f0_mean(f, window_samp);
 len_post = floor((stimInfo.t_dur + stimInfo.ISI) * exptInfo.fr);
-window_f0 = dh.window_paratrial(onsets, 0, len_trial, len_post);
+window_f0 = dh.make_windows(onsets, len_trial + len_post);
 f0 = dh.f0_apply(f, f0_vals, window_f0);
 dff0 = (f - f0) ./ f0;
 dff0_sm = dh.denoise(dff0);
 clear samp_dur len_samp window_samp f0_vals len_post window_f0
+
+%% rasterize df/f0
+f_ras = dh.rasterize(dff0_sm,dur,onsets);
+%% average in each trial
+f_ras_avg = squeeze(mean(f_ras,2));
+
 
 %% plot sample F
 clf
@@ -100,11 +105,6 @@ clear i
 
 
 
-%% rasterize df/f0
-f_ras = dh.rasterize(dff0_sm,dur,onsets);
-%% average in each trial
-f_ras_avg = squeeze(mean(f_ras,2));
-
 
 
 %% correlation with chords
@@ -135,10 +135,6 @@ for s = 1 : length(stimInfo.words)
     ni = 1:n_neur;%n_corr{s};
     si = stimInfo.order==s;
     subplot(2,2,s)
-%     x = linspace(0,dur_s,dur);
-%     y = mean(f_ras(ni, :, si), 3);
-%     se = std(f_ras(ni, :, si), 0, 3) / length(si);
-%     ph.error_shade(x,y,se,'b')
     ph.pltsqz(linspace(0,dur_s,dur), mean(f_ras(ni, :, si), 3)');
     title(['word ' num2str(s) ' (n=' num2str(length(ni)) ')'])
     ph.prefs
@@ -148,9 +144,7 @@ subplot(2,2,3); xlabel('sec'); ylabel('avg \DeltaF/F0')
 clear s ni si
 %% plot average response with individual response for all neurons
 for n = 1 : n_neur
-clf3
-
-
+clf
 for i = 1 : length(stimInfo.words)
     subplot(2,2,i); hold on
     si = find(stimInfo.order==i);
@@ -158,15 +152,14 @@ for i = 1 : length(stimInfo.words)
     for j = 1 : length(si)
         plot(x,squeeze(f_ras(n,:,si(j))));
     end
-    plot(x,squeeze(mean(f_ras(n,:,si),3)),'k',...
+    plot(x,squeeze(mean(f_ras(n,:,si(j)),3)),'k',...
        'LineWidth',2)
     title(['word ' num2str(i)])
     ph.prefs; hold off
     axis([0 dur_s -1 2])
 end
 subplot(2,2,3); xlabel('sec'); ylabel('avg \DeltaF/F0')
-disp(['n ' num2str(n)])
-pause(0.1)
+waitforbuttonpress
 end
 clear n i j x
 
@@ -247,7 +240,34 @@ end
 ph.prefs; hold off; colorbar
 legend(tx)
 clear i idx tx
-%% find peaks of df/f0
+%% calculate max df/f0 values
+[f_max, f_max_idx] = dh.movmax(f_ras_avg,100,20);
+%% plot some examples
+clf; hold on
+plot(f_ras_avg(1,:))
+plot(f_max_idx(1,:),f_ras_avg(1,f_max_idx(1,:)),'o')
+%% color tsne by max idx
+n = randperm(size(f,1), 50);
+clf; hold on;
+plot(y(:,1),y(:,2),'.')
+plot(y(f_max_idx(n,:),1),y(f_max_idx(n,:),2),'r.')
+ph.prefs
+clear n
+%% color by movement
+load('F:/HarangData/data motion/K070_20171027_gram_02.mat')
+%% interpolate, normalize, & rasterize
+fm_int = dh.change_frame_rate(fm, 20, exptInfo.fr);
+fm_norm = (fm_int - mode(fm_int)) / std(fm_int);
+fm_ras = dh.rasterize(fm_norm, dur, onsets);
+fm_ras_avg = squeeze(mean(fm_ras, 2));
+%% threshold
+thresh_mot = 3; % std
+fm_high_idx = find(fm_ras_avg > thresh_mot);
+%% plot
+clf; hold on
+plot(y(:,1), y(:,2), '.')
+plot(y(fm_high_idx,1), y(fm_high_idx,2), 'r.')
+ph.prefs
 
 
 
